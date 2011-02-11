@@ -1,0 +1,9 @@
+questions for tan;
+
+kdc:
+
+is it ok if we pad our keys with 0s, or do they need to be exact?  both sides of the ftp will be padded.
+
+
+
+client:
