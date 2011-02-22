@@ -5,7 +5,8 @@
 #include <iostream>
 #include <pthread.h>
 #include <cstdlib>
-
+#include <memory.h>
+#include <cstring>
 
 const uint32_t recvBuffSize = RCVBUFSIZE;
 

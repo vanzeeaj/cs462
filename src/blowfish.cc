@@ -2,7 +2,10 @@
 
 #include <iostream>
 #include <string>
+#include <stdint.h>
+#include <cstring>
 #include "blowfish.h"
+
 #define F(x)    (((SB[0][x.byte.zero] + SB[1][x.byte.one]) ^ SB[2][x.byte.two]) + SB[3][x.byte.three])
 
 #if defined(__SVR4) && defined(__sun)
