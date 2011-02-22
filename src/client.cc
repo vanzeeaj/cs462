@@ -70,9 +70,6 @@ void Client::initiate(){
 	// Auth with peer
 	getAuthenticationFromPeer();
 
-	// If we've made it this far, we're authenticated.
-	// start the sieve
-	sieve();
 }
 
 // --------------------------------------------
@@ -378,7 +375,6 @@ void Client::listenForCommunication() {
 		delete(peerServerSocket);
 	
 		activeSocket = initiatorClientSocket;
-		sieve();
 	
 	} catch (SocketException &e) {
 		cerr << e.what() << endl;
@@ -521,119 +517,5 @@ uint64_t Client::hashF(uint64_t nonce) {
 	return retl;
 
 }
-
-
-
-// --------------------------------------------
-// Perform the Sieve 
-// --------------------------------------------
-
-
-void Client::sieve() {
-	cout << "Starting the sieve..." << endl;
-
-	// Set our BF key
-	bf->Set_Passwd(sessionKey);
-	
-	if (!initiator) {
-		while (!done) {
-			recvPrimes();	
-			calcPrimes();
-			sendPrimes();
-		}
-	} else {
-		while (!done) {
-			calcPrimes();
-			if (!done) {
-				sendPrimes();
-				if (!done)	recvPrimes();
-			}
-		}
-	} 
-	
-	if (initiator) printPrimes();
-	if (activeSocket!=NULL) delete activeSocket;
-
-}
-
-void Client::calcPrimes() {
-	prime = fetchNextPrime(prime);	// sets prime to the next prime value
-	// CHECK TO SEE IF WE'VE BROKEN THE NECESSARY BOUNDS
-	if (prime*prime>arraySize) {
-		done = true;
-	//	cout << "done" << endl;
-	} else {
-		if (prime < 20 ) cout << "grabbed prime " << prime << endl;
-		// WE HAVEN'T BROKEN THE BOUNDS, SAVE THE PRIME AND PERFORM THE SIEVE
-		if (initiator)	{	// only the initiator keeps track
-			foundPrimes->push_back(prime);
-		}
-		for (long l=prime;l<arraySize;l+=prime) {
-			if (!marked[l]) marked[l] = 1;
-		}
-		long otherClientsPrime = fetchNextPrime(prime);
-		//if (prime < 10) cout << "next prime is " << otherClientsPrime << endl;
-		if (otherClientsPrime*otherClientsPrime>arraySize) {
-			done = true;
-	//		cout << "done" << endl;
-		} else {
-			if (initiator) {
-				foundPrimes->push_back(otherClientsPrime);	// add it to our prime list
-			}
-		}
-	}
-}
-
-long Client::fetchNextPrime(long currPrime) {
-	bool foundPrime = false;
-	long nextPrime = currPrime;
-	while (!foundPrime && nextPrime < arraySize) {
-		if (!marked[nextPrime]) {
-			foundPrime = true;
-		} else {
-			nextPrime++;
-		}
-	}
-	return nextPrime;
-}
-void Client::sendPrimes() {
-	int chunkSize = 16384;
-	char* tempchars;
-	//int size;
-	bf->Encrypt(marked, arraySize);
-	for (long i=0;i<arraySize;i+=chunkSize) {
-		tempchars = new char [chunkSize];
-		memcpy(tempchars, &marked[i], chunkSize);
-		activeSocket->send(tempchars, chunkSize);
-		delete tempchars;
-	}
-	
-}
-
-void Client::printPrimes() {
-	long count = (long)foundPrimes->size();
-	for (long l=0;l<userInputSize;l++) {
-		if (!marked[l]){
-			count++;
-			cout << l << endl;
-		}
-	}
-	cout << "There are " << count << " primes between 2 and " << userInputSize << "." << endl;
-}
-
-void Client::recvPrimes() {
-	int chunkSize = 16384;
-	char* tempchars;
-	//int size;
-	
-	for (long i=0;i<arraySize;i+=chunkSize) {
-		tempchars = new char [chunkSize];
-		activeSocket->recv(tempchars, chunkSize);
-		memcpy(&marked[i], tempchars, chunkSize);
-		delete tempchars;
-	}
-	bf->Decrypt(marked, arraySize);
-}
-
 
 
