@@ -7,8 +7,6 @@
 void* proxy_function(void*);
 
 class KDC {
-
-	
 	
 	public:
 		// Instance variables
@@ -36,7 +34,5 @@ class KDC {
 	
 };
 
-
-		
-		
+	
 #endif
