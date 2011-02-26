@@ -6,8 +6,19 @@ Client::Client(){
 	this->udpSock = new EncryptedUDPSocket();
 }
 
+Client::Client(char* kdcHostname, int kdcPort, char* clientHostname, 
+			int clientPort, uint64_t nonce, char* keyA) {
+	this->kdcHostname = kdcHostname;
+	this->kdcPort = kdcPort;
+	this->clientPort = clientPort;
+	this->nonce = nonce;
+	this->key = keyA;
+	this->sessionKey = new char[maxKeyLen]();
+	this->udpSock = new EncryptedUDPSocket();
+	this->clientHostname = clientHostname;
+}
+
 void Client::initiate(){
-	
 	// Start convo with the KDC
 	getAuthenticationInfoFromKDC();
 	// Auth with Server

@@ -11,8 +11,6 @@
 
 using namespace std;
 
-const uint32_t recvBuffSize = 1000;
-
 KDC::KDC(char* newSessionKey, int newClientCount, char** newClientKeys) {
 	sessionKey = newSessionKey;
 	clientCount = newClientCount;
