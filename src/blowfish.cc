@@ -467,12 +467,6 @@ void Blowfish::Encrypt(void *Ptr,uint32_t N_Bytes)
 
   for (i=0;i<N_Bytes;i++)
   {
-	/*
-	// Before encrypt, need to reorder bytes for uniform endianness
-	if (TestForBigEndian()) {
-		ReorderBytesToLittleEndian(&Work->word0, &Work->word1);
-	}
-	*/
     BF_En(&Work->word0,&Work->word1);
     Work++;
   }
@@ -497,10 +491,6 @@ void Blowfish::Decrypt(void *Ptr,uint32_t N_Bytes)
   for (i=0;i<N_Bytes;i++)
   {
     BF_De(&Work->word0,&Work->word1);
-	// After decrypt, need to reorder bytes for uniform endianness
-	if (TestForBigEndian()) {
-		ReorderBytesToLittleEndian(&Work->word0, &Work->word1);
-	}
     Work++;
   }
 

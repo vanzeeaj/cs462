@@ -6,51 +6,45 @@
 // Constructors/destructors
 // --------------------------------------------
 
-Client::Client(char* key, uint64_t nonce, int port, int kdcID, int serverID) {
-	this->init(n, k, initiator, size);
-}
 
-Client::Client(){
-	this->init(12345,"this is a key", false, 100);
-}
+Client::Client(){}
 
 Client::~Client() {}
 
-void Client::init(uint64_t n, char* k, bool i, int s) {
-	if (s%16384 != 0) {
-		this->arraySize = (s/16384)*16384 + 16384;	// truncate and add 16384 
-	} else {
-		this->arraySize = s;
-	}
-	this->userInputSize = s;
-	this->foundPrimes = new vector<long>();
-	this->marked = (char*) calloc(arraySize, sizeof (char));
-	this->key = k;
-	this->nonce = n;
-	this->request = "request for ks";
-	this->initiator = i;
-	this->prime = 2;
-	this->done = false;
-	this->listenPort = 36537;
-	this->sendPort = listenPort+1;
-	this->recvBuffSize = RCVBUFSIZE;
-	this->cipherToSendToServer1= NULL;
-	this->cipherToSendToServer2= NULL;
-	this->cipherToReceiveFromServer1= NULL;
-	this->cipherToReceiveFromServer2= NULL;
-	this->bf = new Blowfish();
-		initiate();	// starts the whole thing if we're the initiator
-	} else {
-		listenForCommunication();	// otherwise, just sits and waits
-	}
-}
+// void Client::init(uint64_t n, char* k, bool i, int s) {
+	// if (s%16384 != 0) {
+		// this->arraySize = (s/16384)*16384 + 16384;	// truncate and add 16384 
+	// } else {
+		// this->arraySize = s;
+	// }
+	// this->userInputSize = s;
+	// this->foundPrimes = new vector<long>();
+	// this->marked = (char*) calloc(arraySize, sizeof (char));
+	// this->key = k;
+	// this->nonce = n;
+	// this->request = "request for ks";
+	// this->initiator = i;
+	// this->done = false;
+	// this->listenPort = 36537;
+	// this->sendPort = listenPort+1;
+	// this->recvBuffSize = RCVBUFSIZE;
+	// this->cipherToSendToServer1= NULL;
+	// this->cipherToSendToServer2= NULL;
+	// this->cipherToReceiveFromServer1= NULL;
+	// this->cipherToReceiveFromServer2= NULL;
+	// this->bf = new Blowfish();
+		// initiate();	// starts the whole thing if we're the initiator
+	// } else {
+		// listenForCommunication();	// otherwise, just sits and waits
+	// }
+// }
+
 
 // --------------------------------------------
 // Begin
 // --------------------------------------------
 
 void Client::initiate(){
-	
 	// Start convo with the KDC
 	getSessionKeyFromKDC();
 	// Auth with Server

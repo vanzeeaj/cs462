@@ -1,9 +1,10 @@
 #ifndef ENCRYPTED_SOCKETS_H
 #define ENCRYPTED_SOCKETS_H
 #include <netinet/in.h>
+#include <string>
+#include <map>
 #include "PracticalSocket.h"
 #include "blowfish.h"
-
 
 using namespace std;
 
@@ -12,9 +13,15 @@ using namespace std;
 uint64_t htonll(uint64_t v);
 uint64_t ntohll(uint64_t v);
 
-class EncryptedUDPSocket : public UDPSocket {
+class EncryptedSocket {
+	public:
+		EncryptedSocket();
+		map<string,string> hostMap;
+};
+
+class EncryptedUDPSocket : public UDPSocket, public EncryptedSocket {
 	
-	protected:
+	public:
 		// Constructors/Destructors
 		EncryptedUDPSocket();
 		EncryptedUDPSocket(int);
@@ -36,6 +43,9 @@ class EncryptedUDPSocket : public UDPSocket {
 		void send(void* buffer, int bufferLen);		// Sends buffer
 		int recv(void* buffer, int bufferLen);		// Receives into buffer, returns errno
 		
+		
+
+		
 	private:
 		// Instance variables
 		Blowfish* bf;
@@ -44,7 +54,6 @@ class EncryptedUDPSocket : public UDPSocket {
 		string destAddress;
 		int localPort;
 		int destPort;
-		map<string, string> hostMap;		// <HOSTNAME, IP>, instantiated in init()
 		
 		void init(int);		// Used in constructor chaining
 		

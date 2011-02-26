@@ -28,9 +28,12 @@ EncryptedUDPSocket::~EncryptedUDPSocket() {
 }
 
 void EncryptedUDPSocket::init(int localPort){
+	this->bf = new Blowfish();
+	this->sock = new UDPSocket((short)localPort);
+}
+
+EncryptedSocket::EncryptedSocket() {
 	hostMap["andy"] = "137.28.8.161";
 	hostMap["clark"] = "137.28.8.160";
 	hostMap["shiva"] = "137.28.8.143";
-	this->bf = new Blowfish();
-	this->UDPSocket = new UDPSocket(localPort);
 }

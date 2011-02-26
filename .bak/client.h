@@ -34,7 +34,7 @@ class Client {
 	private:
 		// Sieve and constructor stuff
 		void init(uint64_t, char*, bool, int);	// used in constructor chaining
-		bool done;						// bool to determine when we should exit(0)
+		bool done;								// bool to determine when we should exit(0)
 
 		// Auth, Crypt and Socket stuff
 		uint64_t hashF(uint64_t);					// function given to us by dr. tan
@@ -42,7 +42,7 @@ class Client {
 		TCPSocket* getConnectionWithKDC();
 		void sendInfoToKDC(TCPSocket*);
 		void getInfoFromKDC(TCPSocket*);
-		void getSessionKeyFromKDC();	// generates our session key
+		void getSessionKeyFromKDC();			// generates our session key
 		void getAuthenticationFromPeer();
 		
 		TCPSocket* getConnectionWithPeer();
@@ -51,22 +51,6 @@ class Client {
 		void sendMutatedNonce2(TCPSocket*);
 		void receiveOkay(TCPSocket*);
 		
-		void receiveCyphers(TCPSocket*);
-		void sendNonce2(TCPSocket*);
-		void receiveMutatedNonce2(TCPSocket*);
-		void sendOkay(TCPSocket*);
-		
-		TCPServerSocket* peerServerSocket;
-		TCPSocket* initiatorClientSocket;
-		TCPSocket* activeSocket;
-		
-		uint64_t nonce;					// our nonce (used in authenticating)
-		char* key;						// our private key (used for authenticating)
-		char* sessionKey;				// our session key (used for encrypting/decrypting lists)
-		char* request;
-		char* cipherToSendToPeer1;
-		char* cipherToSendToPeer2;
-		uint64_t mutatedNonceToSend;
 		
 		char* cipherToReceiveFromPeer1;
 		char* cipherToReceiveFromPeer2;

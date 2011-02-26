@@ -13,7 +13,7 @@ endif
 ifeq ($(ARCH),linux)
 BUILDDIR=../linux/
 EXEC=$(BUILDDIR)linftp
-FLAGS=-lrt
+FLAGS=-lrt -pthread
 endif
 
 
@@ -27,7 +27,7 @@ DEPS := $(shell ls | grep .h)
 all: $(EXEC)
 
 $(BUILDDIR)%.o: %.cc $(DEPS)
-	g++ -c -o $@ $<
+	g++ -c -o $@ $< 
 
 $(EXEC): $(OFILES)
 	g++ -o $@ $^ $(FLAGS)
@@ -48,7 +48,7 @@ fullclean:
 	rm -f ../shiva/*.o
 	rm -f ../shiva/sunftp
 	rm -f ../linux/linftp
-	g++ $(CCFILES) $(DEPS) -MM > $(EXEC).d
+	g++ $(CCFILES) common.h -MM > $(EXEC).d
 
 #Always include the dependency file unless we run the clean command
 #which will make it even if it does not exist
