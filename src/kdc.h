@@ -17,10 +17,12 @@ class KDC {
 		char* size;
 		char** clientKeys;
 		char** clientIDs;
-		int localPort;
+		int kdcPort;
+		int serverPort;
+		string serverHostname;
 		
 		// Cosntructors/destructors
-		KDC(char*, int, char**);
+		KDC(char*, int, char**, int kdcPort, char* serverHostname, int serverPort);
 		void execute();
 		
 		// Socket Stuff 

@@ -2,11 +2,11 @@
 
 using namespace std;
 
-Server::Server(int serverPort, char* keyB, uint64_t nonce){
+Server::Server(int serverPort, char* serverHostname, char* keyB, uint64_t nonce){
 	this->serverPort = serverPort;
 	this->keyB = keyB;
 	this->nonce = nonce;
-	
+	this->serverHostname = serverHostname;
 	//TODO 
 	//Here we need to shell out to get our IP.
 }

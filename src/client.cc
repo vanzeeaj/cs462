@@ -7,7 +7,8 @@ Client::Client(){
 }
 
 Client::Client(char* kdcHostname, int kdcPort, char* clientHostname, 
-			int clientPort, uint64_t nonce, char* keyA) {
+			int clientPort, char* serverHostname, int serverPort, 
+			uint64_t nonce, char* keyA) {
 	this->kdcHostname = kdcHostname;
 	this->kdcPort = kdcPort;
 	this->clientPort = clientPort;

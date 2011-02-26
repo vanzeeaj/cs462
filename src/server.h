@@ -12,8 +12,8 @@ class Server {
 	public:
 		// constructors and deconstructors
 		Server();
-		Server(int, char*, uint64_t);
-		//serverPort  keyB, nonce 
+		Server(int, char*, char*, uint64_t);
+		//serverPort,  keyB, serverHostname, nonce 
 		~Server();
 
 
@@ -39,6 +39,7 @@ class Server {
 		int serverPort;					// the port we listen on
 		int clientPort;					// the port we send to
 		int connectedClientId;			// client's ID that we send our list to
+		string serverHostname;
 		char* keyB;
 		char* sessionKey;
 		uint64_t nonce;

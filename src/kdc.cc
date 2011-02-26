@@ -11,7 +11,8 @@
 
 using namespace std;
 
-KDC::KDC(char* newSessionKey, int newClientCount, char** newClientKeys) {
+KDC::KDC(char* newSessionKey, int newClientCount, char** newClientKeys, 
+			int kdcPort, char* serverHostname, int serverPort) {
 	sessionKey = newSessionKey;
 	clientCount = newClientCount;
 	clientKeys = newClientKeys;
@@ -19,6 +20,9 @@ KDC::KDC(char* newSessionKey, int newClientCount, char** newClientKeys) {
 	request = new char[recvBuffSize];
 	clientIDs = new char*[clientCount]();
 	for (int i=0;i<clientCount;i++) clientIDs[i] = new char[recvBuffSize];
+	this->kdcPort = kdcPort;
+	this->serverHostname = serverHostname;
+	this->serverPort = serverPort;
 	kdcSocket = NULL;
 }
 
