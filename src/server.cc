@@ -2,6 +2,16 @@
 
 using namespace std;
 
+Server::Server(int serverPort, char* keyB, uint64_t nonce){
+	this->serverPort = serverPort;
+	this->keyB = keyB;
+	this->nonce = nonce;
+	
+	//TODO 
+	//Here we need to shell out to get our IP.
+}
+
+
 uint64_t Server::hashF(uint64_t nonce) {
 	const long A = 48271; 
 	const long M = 2147483647; 
@@ -26,7 +36,7 @@ uint64_t Server::hashF(uint64_t nonce) {
 void Server::listenForCommunication() {
 	//cout << "Server initiated " << endl;
 	try {
-		theServerSocket = new TCPServerSocket(listenPort);
+		theServerSocket = new TCPServerSocket(serverPort);
 		
 		// Accept incoming connections (blocking)
 		clientSocket = theServerSocket->accept();

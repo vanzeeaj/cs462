@@ -12,8 +12,11 @@ class Server {
 	public:
 		// constructors and deconstructors
 		Server();
+		Server(int, char*, uint64_t);
+		//serverPort  keyB, nonce 
 		~Server();
-		
+
+
 		// Instance variables
 		TCPServerSocket* theServerSocket;
 		TCPSocket* clientSocket;
@@ -32,11 +35,11 @@ class Server {
 		void sendOkay(TCPSocket*);
 		uint64_t hashF(uint64_t);				// function given to us by dr. tan
 			
-		int localId;					// our ID (pid + host ip)
-		int listenPort;					// the port we listen on
-		int sendPort;					// the port we send to
+		int localId;					// our ID (host ip + host port)
+		int serverPort;					// the port we listen on
+		int clientPort;					// the port we send to
 		int connectedClientId;			// client's ID that we send our list to
-		unsigned int recvBuffSize;
+		char* keyB;
 		char* sessionKey;
 		uint64_t nonce;
 		
