@@ -29,7 +29,7 @@ KDC::KDC(char* newSessionKey, int newClientCount, char** newClientKeys,
 void KDC::execute() {
 	cout << "KDC initiated" << endl;
 	try {
-		kdcSocket = new TCPServerSocket(localPort);
+		kdcSocket = new TCPServerSocket(kdcPort);
 		
 		while (true) {
 			// Accept incoming connections (blocking)
