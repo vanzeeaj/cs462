@@ -16,12 +16,6 @@
 
 using namespace std;
 
-int TestForBigEndian(void) { 
-	short int word = 0x0001; 
-	char *byte = (char *) &word; 
-	return(byte[0] ? 0 : 1); 
-}
-
 uint32_t ReorderHelper(uint32_t* i){
 	// moving bytes like so:
 	// [0] [1] [2] [3]
@@ -36,18 +30,6 @@ uint32_t ReorderHelper(uint32_t* i){
 	j = *((uint32_t*) chars);
 	i = &j;
 
-/*
-	char a = i & 0xFF000000;
-	char b = i & 0xFF0000;
-	char c = i & 0xFF00;
-	char d = i & 0xFF;
-	
-	uint32_t j;
-	j += a;
-	j += (b<<8);
-	j += (c<<16);
-	j += (d<<24);
-*/
 	chars = NULL;
 	return j;
 }

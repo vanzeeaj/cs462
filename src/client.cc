@@ -1,3 +1,2 @@
 #include "client.h"
 
-// placeholder

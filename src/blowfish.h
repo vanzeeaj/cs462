@@ -36,6 +36,7 @@ struct WordByte
 	unsigned int zero:8;
 };
 #endif
+
 union Word
 {
 	unsigned int word;
