@@ -17,8 +17,8 @@ class Client {
 		// constructors, deconstructors
 		Client();
 		Client(char* kdcHostname, int kdcPort, char* clientHostname, 
-				int clientPort, char* serverHostname, int serverPort,
-				uint64_t nonce, char* keyA);
+			int clientPort, char* serverHostname, int serverPort, 
+			uint64_t nonce, char* keyA);
 		~Client();
 		void initiate();
 		

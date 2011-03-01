@@ -12,7 +12,7 @@
 using namespace std;
 
 KDC::KDC(char* newSessionKey, int newClientCount, char** newClientKeys, 
-			int kdcPort, char* serverHostname, int serverPort) {
+			int kdcPort){//, char* serverHostname, int serverPort) {
 	sessionKey = newSessionKey;
 	clientCount = newClientCount;
 	clientKeys = newClientKeys;
@@ -21,8 +21,8 @@ KDC::KDC(char* newSessionKey, int newClientCount, char** newClientKeys,
 	clientIDs = new char*[clientCount]();
 	for (int i=0;i<clientCount;i++) clientIDs[i] = new char[recvBuffSize];
 	this->kdcPort = kdcPort;
-	this->serverHostname = serverHostname;
-	this->serverPort = serverPort;
+	//this->serverHostname = serverHostname;
+	//this->serverPort = serverPort;
 	kdcSocket = NULL;
 }
 
@@ -92,11 +92,13 @@ void* KDC::thread_function(void* clntSock) {
 
 void KDC::getFromTCPClient(TCPSocket* sock) {
 
+	cout << "Receiving Information from Client!\n";
+	flush(cout);
 	// Grabs the lengths of the transmissions to come
 	// Performs the receive and populates the proper char array
 	uint16_t f = 0;
 	sock->recv(&f, 4);
-	//cout << "received len:" << f << endl;
+	flush(cout);
 	char* recvBuf1 = new char [f];
 	sock->recv(recvBuf1, f);
 	memcpy(request,recvBuf1,f);

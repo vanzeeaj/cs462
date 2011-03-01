@@ -17,6 +17,7 @@ Client::Client(char* kdcHostname, int kdcPort, char* clientHostname,
 	this->sessionKey = new char[maxKeyLen]();
 	this->udpSock = new EncryptedUDPSocket();
 	this->clientHostname = clientHostname;
+	
 }
 
 void Client::initiate(){
@@ -80,6 +81,7 @@ void Client::sendInfoToKDC(TCPSocket* sock) {
 	//cout << "Sending request to KDC" << endl;
 
 	// Our 2 buffers we want to send and their lengths
+	char* request = "request\0";
 	unsigned int firstTransLen = strlen(request);
 	char* firstTrans = new char [firstTransLen];
 	memcpy(firstTrans, request, firstTransLen);
@@ -88,10 +90,24 @@ void Client::sendInfoToKDC(TCPSocket* sock) {
 	try {
 		// Send the length to the socket, and then the buffer, for both items
 		cout << "sending " << firstTransLen << " bytes:" << firstTrans << endl;
+		flush(cout);
+		
+		//just for testing until we get this working in sock.
+		firstTransLen = 0x0700;
 		sock->send(&firstTransLen, 4);
+		
+		firstTransLen = 7;		
 		sock->send(firstTrans, firstTransLen);
 		cout << "sending " << secondTransLen << " bytes:" << nonce << endl;
+		
+		//testing!!
+		secondTransLen = 0x08000000;
 		sock->send(&secondTransLen, 4);
+		
+		//testing
+		secondTransLen = 8;
+		nonce = 0x87D6120000000000;
+		
 		sock->send(&nonce, secondTransLen);
 	
 	} catch(SocketException &e) {
@@ -122,6 +138,8 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 			unsigned int s;					// size of the incoming buffer
 			if (i==2){
 				recvBuff[i] = new char [4];
+				cout << "waiting for nonce size\n";
+				flush(cout);
 				sock->recv(&s, 4);
 				sock->recv(&recvNonce, s);
 			} else {
