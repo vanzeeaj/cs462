@@ -17,6 +17,14 @@ Client::Client(char* kdcHostname, int kdcPort, char* clientHostname,
 	this->sessionKey = new char[maxKeyLen]();
 	this->udpSock = new EncryptedUDPSocket();
 	this->clientHostname = clientHostname;
+	this->serverHostname = serverHostname;
+	this->serverPort = serverPort;
+	this->idb = udpSock->hostMap[clientHostname];
+	idb.append(":");
+	char* temp = new char[sizeof(int) * 8 + 1];
+	snprintf(temp, sizeof(temp), "%d", clientPort);
+	idb.append(temp);
+	delete(temp);
 }
 
 void Client::initiate(){
@@ -80,18 +88,20 @@ void Client::sendInfoToKDC(TCPSocket* sock) {
 	//cout << "Sending request to KDC" << endl;
 
 	// Our 2 buffers we want to send and their lengths
-	unsigned int firstTransLen = strlen(request);
-	char* firstTrans = new char [firstTransLen];
-	memcpy(firstTrans, request, firstTransLen);
-	unsigned int secondTransLen = 8;
+
+	unsigned int firstTransLen = idb.size();
+	unsigned int secondTransLen = 8; //8 because it's a uint_64
 
 	try {
 		// Send the length to the socket, and then the buffer, for both items
-		cout << "sending " << firstTransLen << " bytes:" << firstTrans << endl;
-		sock->send(&firstTransLen, 4);
-		sock->send(firstTrans, firstTransLen);
+		cout << "sending " << firstTransLen << " bytes:" << idb << endl;
+		
+		sock->send(&firstTransLen, 4);	
+		sock->send(idb.c_str(), firstTransLen);
 		cout << "sending " << secondTransLen << " bytes:" << nonce << endl;
+		
 		sock->send(&secondTransLen, 4);
+		
 		sock->send(&nonce, secondTransLen);
 	
 	} catch(SocketException &e) {
@@ -99,10 +109,10 @@ void Client::sendInfoToKDC(TCPSocket* sock) {
 		exit(1);
 	}
 	cout << "Sent to KDC: (Step 1)" << endl;
-	cout << "  Req = '" << firstTrans << "'" << endl;
+	cout << "  Req = '" << idb << "'" << endl;
 	cout << "  N1 = '" << nonce << "'" << endl;
 	//cout << "sent stuff" << endl;
-	delete (firstTrans);
+	//delete (firstTrans);
 	
 }
 
@@ -122,6 +132,8 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 			unsigned int s;					// size of the incoming buffer
 			if (i==2){
 				recvBuff[i] = new char [4];
+				cout << "waiting for nonce size\n";
+				flush(cout);
 				sock->recv(&s, 4);
 				sock->recv(&recvNonce, s);
 			} else {

@@ -20,9 +20,11 @@ class KDC {
 		int kdcPort;
 		int serverPort;
 		string serverHostname;
+		string ida;				
 		
 		// Cosntructors/destructors
-		KDC(char*, int, char**, int kdcPort, char* serverHostname, int serverPort);
+		KDC(char* newSessionKey, int newClientCount, char** newClientKeys, 
+			int kdcPort);//, char* serverHostname, int serverPort);
 		void execute();
 		
 		// Socket Stuff 

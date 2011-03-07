@@ -15,6 +15,7 @@ int main(int argc, char** argv){
 	// Client* c;
 	// Server* s;
 	
+<<<<<<< HEAD
 	// if (*argv[1] == 'k') {
 		// cout << "making a kdc" << endl;
 		// char** nck = new char*[2]();
@@ -32,6 +33,41 @@ int main(int argc, char** argv){
 				// argv[6],atoi(argv[7]),atol(argv[8]),argv[9]);
 		// c->initiate();
 	// }
+=======
+	if (*argv[1] == 'k') {
+		cout << "making a kdc" << endl;
+		char** nck = new char*[2]();
+		nck[0] = "12345\0";
+		nck[1] = "67890\0";
+		
+		k = new KDC("22222\0", 2, nck, 21220);
+		
+		//char** nck = new char*[2]();
+		//nck[0] = argv[3];
+		//nck[1] = argv[4];
+		//k = new KDC(argv[2], 2, nck, atoi(argv[5]), argv[6], atoi(argv[7]));
+		k->execute();
+		
+		
+	} else if (*argv[1] == 's') {
+		cout << "making a server" << endl;
+		
+		s = new Server(21212, "67890\0", "clark/0", 987654321); 
+		//s = new Server(, , , );
+		//s = new Server(atoi(argv[2]), argv[3], argv[4], atol(argv[5]));
+		
+		s->listenForCommunication();
+		
+	} else if (*argv[1] == 'c') {
+		cout << "making a client" << endl;
+		
+		c = new Client("clark\0", 21220, "andy\0", 21211, "clark\0", 21212, 123456789, "12345\0");
+		//c = new Client(argv[2], atoi(argv[3]),argv[4],atoi(argv[5]),
+		//		argv[6],atoi(argv[7]),atol(argv[8]),argv[9]);
+		
+		c->initiate();
+	}
+>>>>>>> ef_updating_KDC
 	
 	return 0;
 }
