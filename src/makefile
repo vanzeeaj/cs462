@@ -6,13 +6,13 @@
 ARCH := $(shell perl ./.testEndian.pl)
 ifeq ($(ARCH),solaris)
 BUILDDIR=../shiva/
-EXEC=$(BUILDDIR)sunftp
+EXEC=sunftp
 FLAGS=-lrt -lsocket -lnsl -lpthread
 endif
 
 ifeq ($(ARCH),linux)
 BUILDDIR=../linux/
-EXEC=$(BUILDDIR)linftp
+EXEC=linftp
 FLAGS=-lrt -pthread
 endif
 

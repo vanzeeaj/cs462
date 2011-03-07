@@ -143,7 +143,7 @@ void KDC::sendToTCPClient(TCPSocket* sock) {
 		// SEND 1
 		//sendSize = htonl(sessionKeySize);
 		sock->send(&sendSize, 4);
-		sock->send(sessionKey, htonl(sessionKeySize));
+		sock->send(sessionKey, sessionKeySize);
 		
 		// SEND 2
 		//sendSize = reorderBytesToLittleEndian(&requestSize);

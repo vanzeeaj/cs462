@@ -19,6 +19,7 @@
 
 #include "PracticalSocket.h"
 
+
 #ifdef WIN32
   #include <winsock.h>         // For socket(), connect(), send(), and recv()
   typedef int socklen_t;
@@ -198,6 +199,7 @@ void CommunicatingSocket::connect(const string &foreignAddress,
 
 void CommunicatingSocket::send(const void *buffer, int bufferLen) 
     throw(SocketException) {
+	cout << "inside send" << endl;
   if (::send(sockDesc, (raw_type *) buffer, bufferLen, 0) < 0) {
     throw SocketException("Send failed (send())", true);
   }
@@ -248,6 +250,7 @@ TCPSocket::TCPSocket(const string &foreignAddress, unsigned short foreignPort)
 
 TCPSocket::TCPSocket(int newConnSD) : CommunicatingSocket(newConnSD) {
 }
+//TCPSocket::~TCPSocket(){}
 
 // TCPServerSocket Code
 
@@ -279,6 +282,8 @@ void TCPServerSocket::setListen(int queueLen) throw(SocketException) {
   }
 }
 
+// TCPServerSocket::~TCPServerSocket(){}
+
 // UDPSocket Code
 
 UDPSocket::UDPSocket() throw(SocketException) : CommunicatingSocket(SOCK_DGRAM,
@@ -297,6 +302,7 @@ UDPSocket::UDPSocket(const string &localAddress, unsigned short localPort)
   setLocalAddressAndPort(localAddress, localPort);
   setBroadcast();
 }
+//UDPSocket::~UDPSocket(){}
 
 void UDPSocket::setBroadcast() {
   // If this fails, we'll hear about it when we try to send.  This will allow 

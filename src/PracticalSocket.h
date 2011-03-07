@@ -22,6 +22,7 @@
 
 #include <string>            // For string
 #include <exception>         // For exception class
+#include "common.h"
 
 using namespace std;
 
@@ -153,7 +154,7 @@ public:
    *   @param bufferLen number of bytes from buffer to be written
    *   @exception SocketException thrown if unable to send data
    */
-  void send(const void *buffer, int bufferLen) throw(SocketException);
+  virtual void send(const void *buffer, int bufferLen) throw(SocketException);
 
   /**
    *   Read into the given buffer up to bufferLen bytes data from this
@@ -163,7 +164,7 @@ public:
    *   @return number of bytes read, 0 for EOF, and -1 for error
    *   @exception SocketException thrown if unable to receive data
    */
-  int recv(void *buffer, int bufferLen) throw(SocketException);
+  virtual int recv(void *buffer, int bufferLen) throw(SocketException);
 
   /**
    *   Get the foreign address.  Call connect() before calling recv()
@@ -204,11 +205,13 @@ public:
    */
   TCPSocket(const string &foreignAddress, unsigned short foreignPort) 
       throw(SocketException);
+	  
+ // ~TCPSocket();
+   TCPSocket(int newConnSD);
 
 private:
   // Access for TCPServerSocket::accept() connection creation
   friend class TCPServerSocket;
-  TCPSocket(int newConnSD);
 };
 
 /**
@@ -246,6 +249,8 @@ public:
    *   @exception SocketException thrown if attempt to accept a new connection fails
    */
   TCPSocket *accept() throw(SocketException);
+  
+  //~TCPServerSocket();
 
 private:
   void setListen(int queueLen) throw(SocketException);
@@ -331,6 +336,8 @@ public:
    *   @exception SocketException thrown if unable to leave group
    */
   void leaveGroup(const string &multicastGroup) throw(SocketException);
+  
+  //~UDPSocket();
 
 private:
   void setBroadcast();

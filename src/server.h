@@ -34,7 +34,7 @@ class Server {
 		void receiveMutatedNonce2(TCPSocket*);
 		void sendOkay(TCPSocket*);
 		uint64_t hashF(uint64_t);				// function given to us by dr. tan
-			
+
 		int localId;					// our ID (host ip + host port)
 		int serverPort;					// the port we listen on
 		int clientPort;					// the port we send to

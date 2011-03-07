@@ -1,64 +1,49 @@
 #ifndef ENCRYPTED_SOCKETS_H
 #define ENCRYPTED_SOCKETS_H
-#include <netinet/in.h>
 #include <string>
 #include <map>
 #include "PracticalSocket.h"
 #include "blowfish.h"
+#include "common.h"
+
+// Tells us if we're on Linux or SunOS
+#if defined(__SVR4) && defined(__sun)
+	#define BIG_END
+#else
+	#define LITTLE_END
+#endif
+
+
 
 using namespace std;
 
-// Functions we're going to need for byte reordering of 64bit numbers (long longs)
-// (32bit definitions already included with netinet/in.h)
-uint64_t htonll(uint64_t v);
-uint64_t ntohll(uint64_t v);
 
+
+// Basically handles all the encryption and local variables common to both TCP/UDP.
+// All of our EncryptedUDP/TCPSockets inherit this.
 class EncryptedSocket {
-	public:
-		EncryptedSocket();
-		map<string,string> hostMap;
-};
 
-class EncryptedUDPSocket : public UDPSocket, public EncryptedSocket {
-	
 	public:
 		// Constructors/Destructors
-		EncryptedUDPSocket();
-		EncryptedUDPSocket(int);
-		~EncryptedUDPSocket();
+		EncryptedSocket();
+		virtual ~EncryptedSocket();
 		
-		// Encryption Functions
-		void setPassword(char*);
-		void resetPassword();
+		// Instance variables
+		map<string,string> hostMap;	
+		Blowfish* bf;
 		
 		// Socket Functions
-		void setLocalAddressAndPort(const string& localAddress, int localPort);
-		int getLocalPort();
-		string getLocalAddress();
+		void sendPayload(void* buffer, int& bufferLen);
+		int recvPayload(void* buffer, int bufferLen);
+		int getPaddedBufferLength(int currBufferLen);
+		void padBufferWithNulls(void* paddedBuffer, void* buffer, int& bufferLen);
+		void reorderBytes(void* buffer, int bufferLen);
+		void helperReorder(void* buffer);
 		
-		void setDestAddressAndPort(const string& destAddress, int destPort);
-		int getDestPort();
-		string getDestAddress();
-		
-		void send(void* buffer, int bufferLen);		// Sends buffer
-		int recv(void* buffer, int bufferLen);		// Receives into buffer, returns errno
-		
-		
-
 		
 	private:
-		// Instance variables
-		Blowfish* bf;
-		UDPSocket* sock;
-		string localAddress;
-		string destAddress;
-		int localPort;
-		int destPort;
-		
-		void init(int);		// Used in constructor chaining
 		
 		// Private Helper Functions
-		
 		/**
 		 *  Takes in a buffer and pads it with nulls 
 		 *  until a multiple of 8 bytes is reached.  This
@@ -70,20 +55,59 @@ class EncryptedUDPSocket : public UDPSocket, public EncryptedSocket {
 		 *	@param bufferLen- incoming buffer len; is mutated to match outgoing buffer len.
 		 *  @return 		- pointer to new buffer padded with nulls
 		 */
-		void* padBufferWithNulls(void* buffer, int& bufferLen);
+
+		//void cleanNullsFromBuffer(void* buffer, int bufferLen);   // never need
+
+};
+
+
+class EncryptedTCPSocket : public EncryptedSocket {
+
+	public:
+		// Constructors/Destructors
+		//EncryptedTCPSocket();
+		EncryptedTCPSocket(string, int);
+		EncryptedTCPSocket(TCPSocket*);
+		//~EncryptedTCPSocket();
 		
-		/**
-		 *  Private encryption and decryption functions called
-		 *  when we send or receive from a socket. Makes calls 
-		 *  to Blowfish->Encrypt and Blowfish->Decrypt to encrypt 
-		 *  or decrypt our payloads.
-		 */
-		void encryptPayload(void* buffer, int bufferLen);
-		void decryptPayload(void* buffer, int bufferLen);
+		void sendPayload(void* buffer, int bufferLen);
+		int recvPayload(void* buffer, int bufferLen);
 		
+		TCPSocket* sock;
 		
+	private:
+		// Access for EncryptedTCPServerSocket::accept() connection creation
+		friend class EncryptedTCPServerSocket;
 		
 };
 
+class EncryptedTCPServerSocket : public EncryptedSocket {
+
+	public:
+		// Constructors/Destructors
+		//EncryptedTCPServerSocket();
+		EncryptedTCPServerSocket(string, int);
+		//~EncryptedTCPServerSocket();
+		
+		// From Parent Classes //
+		// Socket:
+		// void setLocalAddressAndPort(string &localAddress, short localPort = 0)
+		
+		TCPServerSocket* sock;
+
+		EncryptedTCPSocket* accept();
+};
+
+class EncryptedUDPSocket : public EncryptedSocket {
+
+	public:
+		// Constructors/Destructors
+		EncryptedUDPSocket();
+		EncryptedUDPSocket(string, int);
+		//~EncryptedUDPSocket();
+		
+		UDPSocket* sock;
+		
+};
 
 #endif

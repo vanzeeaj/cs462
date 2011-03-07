@@ -11,11 +11,14 @@
 #define MAX_STRING   256
 #define MAX_PASSWD   56  // 448bits
 
+// #define BIG_ENDIAN
+// #define LITTLE_ENDIAN
 #if defined(__SVR4) && defined(__sun)
- #define BIG_END
+	#define BIG_END
 #else
- #define LITTLE_END
+	#define LITTLE_END
 #endif
+
 
 #ifdef BIG_END
 struct WordByte
