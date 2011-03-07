@@ -132,13 +132,13 @@ void KDC::sendToTCPClient(TCPSocket* sock) {
 	uint32_t sessionKeySize = strlen(sessionKey);
 	uint32_t requestSize = strlen(request);
 	uint32_t nonceSize = 8;
-	uint32_t cipher1Size = sessionKeySize + 1;
-	uint32_t idaSize = ida.size() + 1;
+	uint32_t cipher1Size = sessionKeySize;
+	uint32_t idaSize = ida.size();
 
 	char* cipherToPeer1 = new char [cipher1Size];
-	cipherToPeer1 = sessionKey + '\0';
-	char* cipherToPeer2 = new char [idaSize];
-	cipherToPeer2 = clientIDs[0];
+	cipherToPeer1 = sessionKey;
+	//char* cipherToPeer2 = new char [idaSize];
+	//cipherToPeer2 = clientIDs[0];
 
 	//cout << "Everything initialized, starting sends..." << endl;
 

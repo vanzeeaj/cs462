@@ -19,10 +19,10 @@ Client::Client(char* kdcHostname, int kdcPort, char* clientHostname,
 	this->clientHostname = clientHostname;
 	this->serverHostname = serverHostname;
 	this->serverPort = serverPort;
-	this->idb = udpSock->hostMap[serverHostname];
+	this->idb = udpSock->hostMap[clientHostname];
 	idb.append(":");
 	char* temp = new char[sizeof(int) * 8 + 1];
-	snprintf(temp, sizeof(temp), "%d", serverPort);
+	snprintf(temp, sizeof(temp), "%d", clientPort);
 	idb.append(temp);
 	delete(temp);
 }
@@ -89,8 +89,8 @@ void Client::sendInfoToKDC(TCPSocket* sock) {
 
 	// Our 2 buffers we want to send and their lengths
 
-	unsigned int firstTransLen = idb.size() + 1;
-	unsigned int secondTransLen = 8;
+	unsigned int firstTransLen = idb.size();
+	unsigned int secondTransLen = 8; //8 because it's a uint_64
 
 	try {
 		// Send the length to the socket, and then the buffer, for both items
@@ -137,9 +137,7 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 				sock->recv(&s, 4);
 				sock->recv(&recvNonce, s);
 			} else {
-				cout << "Size before = " << s << " after = ";
 				sock->recv(&s, 4);
-				cout << s << endl;
 				recvBuff[i] = new char [s];		// create the buffer with that size
 				sock->recv(recvBuff[i],s);		// receive the buffer
 				cout << "received:" << recvBuff[i] << ", size:" << s << ",iteration " << i << endl;
