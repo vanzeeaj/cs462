@@ -17,7 +17,7 @@ int main(int argc, char** argv){
 		nck[0] = "12345\0";
 		nck[1] = "67890\0";
 		
-		k = new KDC("22222\0", 2, nck, 21210);
+		k = new KDC("22222\0", 2, nck, 21220);
 		
 		//char** nck = new char*[2]();
 		//nck[0] = argv[3];
@@ -37,7 +37,7 @@ int main(int argc, char** argv){
 	} else if (*argv[1] == 'c') {
 		cout << "making a client" << endl;
 		
-		c = new Client("shiva\0", 21210, "clark\0", 21211, "clark\0", 21212, 123456789, "12345\0");
+		c = new Client("clark\0", 21220, "clark\0", 21211, "clark\0", 21212, 123456789, "12345\0");
 		//c = new Client(argv[2], atoi(argv[3]),argv[4],atoi(argv[5]),
 		//		argv[6],atoi(argv[7]),atol(argv[8]),argv[9]);
 		

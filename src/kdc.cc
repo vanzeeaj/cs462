@@ -67,12 +67,19 @@ void* KDC::thread_function(void* clntSock) {
 	// Error catching and screen output
 	cout << "Handling client ";
 	try {
-		cout << sock->getForeignAddress() << ":";
+		ida = sock->getForeignAddress();
+		ida.append(":");
+		cout << ida;
 	} catch (SocketException e) {
 		cerr << "Unable to get foreign address" << endl;
 	}
 	try {
-		cout << sock->getForeignPort();
+		//CONVERTING AN INTO TO CHAR ARRAY >> UGLY
+		char* temp = new char[sizeof(int) * 4 + 1];
+		snprintf(temp, sizeof(temp), "%d", sock->getForeignPort());
+		ida.append(temp);
+		cout << temp;
+		delete(temp);
 	} catch (SocketException e) {
 		cerr << "Unable to get foreign port" << endl;
 	}
@@ -125,8 +132,8 @@ void KDC::sendToTCPClient(TCPSocket* sock) {
 	uint32_t sessionKeySize = strlen(sessionKey);
 	uint32_t requestSize = strlen(request);
 	uint32_t nonceSize = 8;
-	uint32_t cipher1Size = sessionKeySize+1;
-	uint32_t idaSize = strlen(clientIDs[0]);
+	uint32_t cipher1Size = sessionKeySize + 1;
+	uint32_t idaSize = ida.size() + 1;
 
 	char* cipherToPeer1 = new char [cipher1Size];
 	cipherToPeer1 = sessionKey + '\0';
@@ -136,43 +143,45 @@ void KDC::sendToTCPClient(TCPSocket* sock) {
 	//cout << "Everything initialized, starting sends..." << endl;
 
 	try {
+		cout << "SENDING THESE VALUES" << endl;
+		cout << "SessionKey size: " << sessionKeySize << " sessionKey: " << sessionKey << endl;
+		cout << "Request size: " << requestSize << " request: " << request << endl;		
+		cout << "nonce size: " << nonceSize << " nonce: " << nonce << endl;
+		cout << "cipher1 size: " << cipher1Size << " cipherToPeer1: " << cipherToPeer1 << endl;
+		cout << "ida size: " << idaSize << " ida: " << ida << endl;
+	
+	
 		// 5 buffers being sent in total.  Reordering the sizes so
 		// the goonies can understand, then sending them, then
 		// sending the buffers.
 		// Setting up variables we'll need for blowfish and endian stuff
-		uint32_t sendSize = sessionKeySize;
 
-		// SEND 1
-		//sendSize = htonl(sessionKeySize);
-		sock->send(&sendSize, 4);
-		sock->send(sessionKey, htonl(sessionKeySize));
+		// SEND 1	
+		//encrypt with a			
+		sock->send(&sessionKeySize, 4);
+		sock->send(sessionKey, sessionKeySize);
 		
-		// SEND 2
-		//sendSize = reorderBytesToLittleEndian(&requestSize);
-		// TODO ENCRYPT WITH Ka
-		sock->send(&sendSize, 4);
+		// SEND 2		
+		//encrypt with a
+		sock->send(&requestSize, 4);
 		sock->send(request, requestSize);
 
 		// SEND 3
-		//sendSize = reorderBytesToLittleEndian(&nonceSize);
-		//reorderLong(&sendNonce);
-		// TODO ENCRYPT WITH Ka
+		//encrypt with a
 		uint64_t sendNonce = nonce;
-		sock->send(&sendSize, 4);
+		sock->send(&nonceSize, 4);
 		sock->send(&sendNonce,nonceSize);
 		
 
 		// SEND 4
-		//sendSize = reorderBytesToLittleEndian(&cipher1Size);
-		// TODO ENCRYPT WITH Kb, then Ka
-		sock->send(&sendSize, 4);
+		//encrypt with b then with a
+		sock->send(&cipher1Size, 4);
 		sock->send(cipherToPeer1, cipher1Size);
 
 		// SEND 5
-		//sendSize = reorderBytesToLittleEndian(&idaSize);
-		// TODO ENCRYPT WITH Kb, then Ka
-		sock->send(&sendSize, 4);
-		sock->send(cipherToPeer2, idaSize);
+		//encrypt with b then with a
+		sock->send(&idaSize, 4);
+		sock->send(ida.c_str(), idaSize);
 	} catch (SocketException &e) {
 		cerr << e.what() << endl;
 		exit(1);

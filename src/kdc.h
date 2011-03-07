@@ -20,6 +20,7 @@ class KDC {
 		int kdcPort;
 		int serverPort;
 		string serverHostname;
+		string ida;				
 		
 		// Cosntructors/destructors
 		KDC(char* newSessionKey, int newClientCount, char** newClientKeys, 
