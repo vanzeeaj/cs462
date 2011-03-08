@@ -1,5 +1,3 @@
-//placeholder
-
 #include <iostream>
 #include <pthread.h>
 #include <cstdlib>
@@ -156,15 +154,9 @@ void KDC::sendToTCPClient(TCPSocket* sock) {
 		// sending the buffers.
 		// Setting up variables we'll need for blowfish and endian stuff
 
-<<<<<<< HEAD
-		// SEND 1
-		//sendSize = htonl(sessionKeySize);
-		sock->send(&sendSize, 4);
-=======
 		// SEND 1	
 		//encrypt with a			
 		sock->send(&sessionKeySize, 4);
->>>>>>> ef_updating_KDC
 		sock->send(sessionKey, sessionKeySize);
 		
 		// SEND 2		
