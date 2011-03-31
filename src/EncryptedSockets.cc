@@ -50,7 +50,7 @@ EncryptedUDPSocket::EncryptedUDPSocket(string localAddress, int port) : Encrypte
 }
 
  EncryptedUDPSocket::EncryptedUDPSocket() : EncryptedSocket(){
-	sock = new UDPSocket("clark",34512);	 
+	sock = new UDPSocket(34512);	 
 }
 
 // EncryptedUDPSocket::~EncryptedUDPSocket() {
@@ -115,4 +115,3 @@ EncryptedTCPSocket* EncryptedTCPServerSocket::accept() {
 	TCPSocket* t = sock->accept();
 	return new EncryptedTCPSocket(t);
 } 
-

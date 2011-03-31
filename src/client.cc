@@ -15,11 +15,7 @@ Client::Client(char* kdcHostname, int kdcPort, char* clientHostname,
 	this->nonce = nonce;
 	this->key = keyA;
 	this->sessionKey = new char[maxKeyLen]();
-		cout << "sup" << endl;
-
 	this->udpSock = new EncryptedUDPSocket();
-		cout << "yeah" << endl;
-
 	this->clientHostname = clientHostname;
 	this->serverHostname = serverHostname;
 	this->serverPort = serverPort;

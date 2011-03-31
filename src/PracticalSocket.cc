@@ -294,13 +294,21 @@ UDPSocket::UDPSocket() throw(SocketException) : CommunicatingSocket(SOCK_DGRAM,
 UDPSocket::UDPSocket(unsigned short localPort)  throw(SocketException) : 
     CommunicatingSocket(SOCK_DGRAM, IPPROTO_UDP) {
   setLocalPort(localPort);
-  setBroadcast();
-}
+
+
+	setBroadcast();
+
+	}
 
 UDPSocket::UDPSocket(const string &localAddress, unsigned short localPort) 
-     throw(SocketException) : CommunicatingSocket(SOCK_DGRAM, IPPROTO_UDP) {
+     throw(SocketException) : CommunicatingSocket(SOCK_DGRAM, IPPROTO_UDP) {	
+	 cout << "here" << endl;
+
   setLocalAddressAndPort(localAddress, localPort);
+  	cout << "here" << endl;
   setBroadcast();
+  	cout << "here" << endl;
+
 }
 //UDPSocket::~UDPSocket(){}
 
