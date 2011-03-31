@@ -40,23 +40,6 @@ class EncryptedSocket {
 		void reorderBytes(void* buffer, int bufferLen);
 		void helperReorder(void* buffer);
 		
-		
-	private:
-		
-		// Private Helper Functions
-		/**
-		 *  Takes in a buffer and pads it with nulls 
-		 *  until a multiple of 8 bytes is reached.  This
-		 *  should only be called on the last packet of 
-		 *  our	file transfer, or any irregularly sized 
-		 *  packets we might want to send. We pad to 8
-		 *  bytes so our blowfish can encrypt properly.
-		 *  @param buffer 	- incoming buffer to pad with nulls
-		 *	@param bufferLen- incoming buffer len; is mutated to match outgoing buffer len.
-		 *  @return 		- pointer to new buffer padded with nulls
-		 */
-
-		//void cleanNullsFromBuffer(void* buffer, int bufferLen);   // never need
 
 };
 
@@ -73,6 +56,7 @@ class EncryptedTCPSocket : public EncryptedSocket {
 		void sendPayload(void* buffer, int bufferLen);
 		int recvPayload(void* buffer, int bufferLen);
 		
+		// Instance Variables
 		TCPSocket* sock;
 		
 	private:
@@ -89,12 +73,10 @@ class EncryptedTCPServerSocket : public EncryptedSocket {
 		EncryptedTCPServerSocket(string, int);
 		//~EncryptedTCPServerSocket();
 		
-		// From Parent Classes //
-		// Socket:
-		// void setLocalAddressAndPort(string &localAddress, short localPort = 0)
-		
+		// Variables
 		TCPServerSocket* sock;
 
+		// Functions
 		EncryptedTCPSocket* accept();
 };
 
@@ -106,6 +88,7 @@ class EncryptedUDPSocket : public EncryptedSocket {
 		EncryptedUDPSocket(string, int);
 		//~EncryptedUDPSocket();
 		
+		// Instance Variables
 		UDPSocket* sock;
 		
 };

@@ -53,6 +53,10 @@ EncryptedUDPSocket::EncryptedUDPSocket(string localAddress, int port) : Encrypte
 	sock = new UDPSocket("clark",34512);	 
 }
 
+// EncryptedUDPSocket::~EncryptedUDPSocket() {
+	// delete sock;
+// }
+
 
 
 /* ENCRYPTED TCP SOCKET STUFF */
@@ -64,6 +68,10 @@ EncryptedTCPSocket::EncryptedTCPSocket(string name, int port) : EncryptedSocket(
 EncryptedTCPSocket::EncryptedTCPSocket(TCPSocket* t) : EncryptedSocket() {
 	sock = t;
 }
+
+// EncryptedTCPSocket::~EncryptedTCPSocket() {
+	// delete sock;
+// }
 
 void EncryptedTCPSocket::sendPayload(void* buffer, int bufferLen) {
 	cout << "inside send payload" << endl;
@@ -98,8 +106,11 @@ int EncryptedTCPSocket::recvPayload(void* buffer, int bufferLen) {
 EncryptedTCPServerSocket::EncryptedTCPServerSocket(string name, int port):EncryptedSocket() {
 	sock = new TCPServerSocket(name, port, 5);
 }
-	
 
+// EncryptedTCPServerSocket::~EncryptedTCPServerSocket(){
+	// delete sock;
+// }
+	
 EncryptedTCPSocket* EncryptedTCPServerSocket::accept() {
 	TCPSocket* t = sock->accept();
 	return new EncryptedTCPSocket(t);
