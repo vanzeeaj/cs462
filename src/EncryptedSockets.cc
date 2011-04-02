@@ -3,9 +3,33 @@
 
 /* ENCRYPTED SOCKET STUFF */
 EncryptedSocket::EncryptedSocket() {
-	hostMap["andy"] = "137.28.8.161";
-	hostMap["clark"] = "137.28.8.160";
-	hostMap["shiva"] = "137.28.8.143";
+	// char* clark = new char [6];
+	// clark[0] = 'c';
+	// clark[1] = 'l';
+	// clark[2] = 'a';
+	// clark[3] = 'r';
+	// clark[4] = 'k';
+	// clark[5] = '\0';
+	// char* andy = new char [5];
+	// andy[0] = 'a';
+	// andy[1] = 'n';
+	// andy[2] = 'd';
+	// andy[3] = 'y';
+	// andy[4] = '\0';
+	// char* shiva = new char [6];
+	// shiva[0] = 's';
+	// shiva[1] = 'h';
+	// shiva[2] = 'i';
+	// shiva[3] = 'v';
+	// shiva[4] = 'a';
+	// shiva[5] = '\0';
+	
+	// hostMap[andy] = "137.28.8.161";
+	// hostMap[clark] = "137.28.8.160";
+	// hostMap[shiva] = "137.28.8.143";
+	// hostMap["andy\0"] = "137.28.8.161";
+	// hostMap["clark\0"] = "137.28.8.160";
+	// hostMap["shiva\0"] = "137.28.8.143";
 	this->bf = new Blowfish();
 }
 EncryptedSocket::~EncryptedSocket(){
@@ -50,7 +74,7 @@ EncryptedUDPSocket::EncryptedUDPSocket(string localAddress, int port) : Encrypte
 }
 
  EncryptedUDPSocket::EncryptedUDPSocket() : EncryptedSocket(){
-	sock = new UDPSocket(34512);	 
+	sock = new UDPSocket(34522);	 
 }
 
 // EncryptedUDPSocket::~EncryptedUDPSocket() {

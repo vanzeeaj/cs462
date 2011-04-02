@@ -17,8 +17,8 @@ class Client {
 	public:
 		// constructors, deconstructors
 		Client();
-		Client(char* kdcHostname, int kdcPort, char* clientHostname, 
-			int clientPort, char* serverHostname, int serverPort, 
+		Client(string kdcHostname, int kdcPort, string clientHostname, 
+			int clientPort, string serverHostname, int serverPort, 
 			uint64_t nonce, char* keyA);
 		~Client();
 		void initiate();
@@ -27,7 +27,6 @@ class Client {
 		uint64_t nonce;					// our nonce (used in authenticating)
 		char* key;						// our private key (used for authenticating)
 		char* sessionKey;				// our session key (used for encrypting/decrypting lists)
-		char* request;
 		char* cipherToSendToServer1;
 		char* cipherToSendToServer2;
 		uint64_t nonce2ReceivedFromServer;

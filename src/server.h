@@ -12,8 +12,7 @@ class Server {
 	public:
 		// constructors and deconstructors
 		Server();
-		Server(int, char*, char*, uint64_t);
-		//serverPort,  keyB, serverHostname, nonce 
+		Server(int serverPort, string serverHostname, char* keyB, uint64_t nonce);
 		~Server();
 
 

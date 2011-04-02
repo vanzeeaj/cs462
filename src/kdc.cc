@@ -15,7 +15,6 @@ KDC::KDC(char* newSessionKey, int newClientCount, char** newClientKeys,
 	clientCount = newClientCount;
 	clientKeys = newClientKeys;
 	size    = new char[recvBuffSize];
-	request = new char[recvBuffSize];
 	clientIDs = new char*[clientCount]();
 	for (int i=0;i<clientCount;i++) clientIDs[i] = new char[recvBuffSize];
 	this->kdcPort = kdcPort;
@@ -97,16 +96,13 @@ void* KDC::thread_function(void* clntSock) {
 
 void KDC::getFromTCPClient(TCPSocket* sock) {
 
-	cout << "Receiving Information from Client!\n";
-	flush(cout);
+	cout << "Receiving Information from Client!" << endl;;
 	// Grabs the lengths of the transmissions to come
 	// Performs the receive and populates the proper char array
 	uint16_t f = 0;
 	sock->recv(&f, 4);
-	flush(cout);
-	char* recvBuf1 = new char [f];
-	sock->recv(recvBuf1, f);
-	memcpy(request,recvBuf1,f);
+	request = new char [f];
+	sock->recv(request, f);
 	//cout << "grabbed request:" << request << endl;
 	cout << "Received from A: (Step 1)" << endl;
 	cout << "  Req = '" << request << "' (len = " << f << ")" << endl;
@@ -118,8 +114,6 @@ void KDC::getFromTCPClient(TCPSocket* sock) {
 	sock->recv(&nonce, 8);
 	//cout << "grabbed nonce:" << nonce << endl;
 	cout << "  N1 = '" << nonce << "' (len = " << s << ")" << endl;
-
-	delete (recvBuf1);
 	//cout << "finished recv" << endl;
 
 }

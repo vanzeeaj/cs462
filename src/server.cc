@@ -2,13 +2,11 @@
 
 using namespace std;
 
-Server::Server(int serverPort, char* serverHostname, char* keyB, uint64_t nonce){
+Server::Server(int serverPort, string serverHostname, char* keyB, uint64_t nonce){
 	this->serverPort = serverPort;
 	this->keyB = keyB;
 	this->nonce = nonce;
 	this->serverHostname = serverHostname;
-	//TODO 
-	//Here we need to shell out to get our IP.
 }
 
 
@@ -37,7 +35,6 @@ void Server::listenForCommunication() {
 	//cout << "Server initiated " << endl;
 	try {
 		theServerSocket = new TCPServerSocket(serverPort);
-		
 		// Accept incoming connections (blocking)
 		clientSocket = theServerSocket->accept();
 		
@@ -100,9 +97,6 @@ void Server::sendNonce2(TCPSocket* sock) {
 	//cout << "Everything initialized, starting sends..." << endl;
 
 	try {
-		// 5 buffers being sent in total.  Reordering the sizes so
-		// the goonies can understand, then sending them, then
-		// sending the buffers.
 		// SEND 1
 		// TODO ENCRYPT WITH Ks
 		sock->send(&nonceSize, 4);

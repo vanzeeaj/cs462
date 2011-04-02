@@ -199,7 +199,6 @@ void CommunicatingSocket::connect(const string &foreignAddress,
 
 void CommunicatingSocket::send(const void *buffer, int bufferLen) 
     throw(SocketException) {
-	cout << "inside send" << endl;
   if (::send(sockDesc, (raw_type *) buffer, bufferLen, 0) < 0) {
     throw SocketException("Send failed (send())", true);
   }

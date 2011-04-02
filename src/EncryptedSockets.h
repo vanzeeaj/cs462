@@ -29,7 +29,7 @@ class EncryptedSocket {
 		virtual ~EncryptedSocket();
 		
 		// Instance variables
-		map<string,string> hostMap;	
+		//map<string,string> hostMap;	
 		Blowfish* bf;
 		
 		// Socket Functions

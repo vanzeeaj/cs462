@@ -6,8 +6,8 @@ Client::Client(){
 	this->udpSock = new EncryptedUDPSocket();
 }
 
-Client::Client(char* kdcHostname, int kdcPort, char* clientHostname, 
-			int clientPort, char* serverHostname, int serverPort, 
+Client::Client(string kdcHostname, int kdcPort, string clientHostname, 
+			int clientPort, string serverHostname, int serverPort, 
 			uint64_t nonce, char* keyA) {
 	this->kdcHostname = kdcHostname;
 	this->kdcPort = kdcPort;
@@ -15,13 +15,12 @@ Client::Client(char* kdcHostname, int kdcPort, char* clientHostname,
 	this->nonce = nonce;
 	this->key = keyA;
 	this->sessionKey = new char[maxKeyLen]();
-	this->udpSock = new EncryptedUDPSocket();
+	//this->udpSock = new EncryptedUDPSocket();
 	this->clientHostname = clientHostname;
 	this->serverHostname = serverHostname;
 	this->serverPort = serverPort;
-	cout << "sup" << endl;
-	this->idb = udpSock->hostMap[clientHostname];
-	cout << "yeah" << endl;
+	//this->idb = udpSock->hostMap[clientHostname];
+	this->idb = clientHostname;
 	idb.append(":");
 	char* temp = new char[sizeof(int) * 8 + 1];
 	snprintf(temp, sizeof(temp), "%d", clientPort);
@@ -74,8 +73,11 @@ void Client::getAuthenticationInfoFromKDC() {
 TCPSocket* Client::getConnectionWithKDC() {
 	try {
 		// Establish connection with the echo server
-		string servAddress = udpSock->hostMap[kdcHostname];
-		TCPSocket* clientSocket = new TCPSocket(servAddress, kdcPort);
+		// cout << kdcHostname.size() << endl;
+		// cout << kdcHostname.c_str() << "." << endl;
+		// string servAddress = udpSock->hostMap[kdcHostname.c_str()];
+		// cout << servAddress << endl;
+		TCPSocket* clientSocket = new TCPSocket(kdcHostname, kdcPort);
 		return clientSocket;
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
@@ -140,8 +142,9 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 				sock->recv(&recvNonce, s);
 			} else {
 				sock->recv(&s, 4);
-				recvBuff[i] = new char [s];		// create the buffer with that size
+				recvBuff[i] = new char [s+1];		// create the buffer with that size
 				sock->recv(recvBuff[i],s);		// receive the buffer
+				recvBuff[i][s] = '\0';
 				cout << "received:" << recvBuff[i] << ", size:" << s << ",iteration " << i << endl;
 			}
 			i++;
@@ -155,7 +158,8 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 		cout << "  Eka[Ks] = '" << recvBuff[0] << "'" << endl;
 		// TODO DECRYPT RECVBUFF[0-4] WITH Ka
 		sessionKey = recvBuff[0];
-		if (strcmp(recvBuff[1], request)) {
+		string cs = recvBuff[1];
+		if (cs.find(idb) == -1) {
 			cerr << "Did not receive our request back.  Terminating" << endl;
 			exit(1);
 		}
@@ -199,9 +203,8 @@ void Client::authenticateWithServer() {
 
 TCPSocket* Client::getConnectionWithServer() {
 	try {
-		// TODO
-		string servAddress = udpSock->hostMap[serverHostname];
-		TCPSocket* ServerSocket = new TCPSocket(servAddress, serverPort);
+		//string servAddress = udpSock->hostMap[serverHostname];
+		TCPSocket* ServerSocket = new TCPSocket(serverHostname, serverPort);
 		return ServerSocket;
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
@@ -264,7 +267,7 @@ void Client::receiveNonce2(TCPSocket* sock) {
 		cout << "Received from B: (Step 4)" << endl;
 		cout << "  Eks[N2] = '" << recvNonce << "'" << endl;
 		nonce2ReceivedFromServer = recvNonce;
-		// change this after decryption done:
+		// TODO Decrypt Ks Nonce2
 		cout << "  N2(decrypted) = '" << recvNonce << "'" << endl;
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
@@ -280,9 +283,7 @@ void Client::sendMutatedNonce2(TCPSocket* sock) {
 	//cout << "Sending cyphers to peer" << endl;
 
 	// Our 2 buffers we want to send and their lengths
-	cout << "Sent to B: (Step 5)" << endl;
-	cout << "  encryptedAndMutatedNonceToSend='" << encryptedAndMutatedNonceToSend << "'" << endl;
-	
+	cout << "Sent to B: (Step 5)" << endl;	
 	// TODO: Encrypt this with Eks
 	cout << "  mutatedNonce(encrypted)='" << encryptedAndMutatedNonceToSend << "'" << endl;
 	unsigned int firstTransLen = 8;
