@@ -5,10 +5,11 @@
 #include <queue>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <sys/wait.h>
 #include <signal.h>
 #include <vector>
+#include <fstream>
 #include "EncryptedSockets.h"
 #include "common.h"
 
@@ -19,7 +20,7 @@ class Client {
 		Client();
 		Client(string kdcHostname, int kdcPort, string clientHostname, 
 			int clientPort, string serverHostname, int serverPort, 
-			uint64_t nonce, char* keyA);
+			uint64_t nonce, char* keyA, string fileToSend, int packetSize);
 		~Client();
 		void initiate();
 		
@@ -53,8 +54,21 @@ class Client {
 		void sendMutatedNonce2(TCPSocket*);
 		void receiveOkay(TCPSocket*);
 		
+		// FTP Variables and functions.
 		EncryptedUDPSocket* udpSock;
+		string fileToSend;
+		ifstream theIfstream;
+		int packetSize;
+		long currPacketId;
+		string algorithm;
+		long windowSize;
 		
+		void startFTP();
+		void initUDPSocket();
+		void beginSend();
+		void runGoBackN();
+		void runSR();
+		void readNextPacketFromFile(Packet* p);
 	
 	private:
 		// Helper functions

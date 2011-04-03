@@ -43,8 +43,22 @@ class Server {
 		char* sessionKey;
 		uint64_t nonce;
 		
+		// FTP Variables and functions
+		EncryptedUDPSocket* udpSock;
+		string fileToSend;
+		ifstream theIfstream;
+		int packetSize;
+		long currPacketId;
+		long windowSize;
+		
+		void startFTP();
+		void initUDPSocket();
+		void beginRecv();
+		void closeUDPSocketAndKillThread();
+		
 		
 	private:
+		// helper functions
 		
 };
 

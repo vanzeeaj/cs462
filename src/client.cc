@@ -8,24 +8,24 @@ Client::Client(){
 
 Client::Client(string kdcHostname, int kdcPort, string clientHostname, 
 			int clientPort, string serverHostname, int serverPort, 
-			uint64_t nonce, char* keyA) {
+			uint64_t nonce, char* keyA, string fileToSend, int packetSize) {
 	this->kdcHostname = kdcHostname;
 	this->kdcPort = kdcPort;
 	this->clientPort = clientPort;
 	this->nonce = nonce;
 	this->key = keyA;
 	this->sessionKey = new char[maxKeyLen]();
-	//this->udpSock = new EncryptedUDPSocket();
 	this->clientHostname = clientHostname;
 	this->serverHostname = serverHostname;
 	this->serverPort = serverPort;
-	//this->idb = udpSock->hostMap[clientHostname];
 	this->idb = clientHostname;
 	idb.append(":");
 	char* temp = new char[sizeof(int) * 8 + 1];
 	snprintf(temp, sizeof(temp), "%d", clientPort);
 	idb.append(temp);
 	delete(temp);
+	this->fileToSend = fileToSend;
+	this->currPacketId = -1;
 }
 
 void Client::initiate(){
@@ -33,7 +33,7 @@ void Client::initiate(){
 	getAuthenticationInfoFromKDC();
 	// Auth with Server
 	authenticateWithServer();
-
+	startFTP();
 }
 
 uint64_t Client::hashF(uint64_t nonce) {
@@ -44,8 +44,6 @@ uint64_t Client::hashF(uint64_t nonce) {
 
 	static long state = 1; 
 	long t = A * (state % Q) - R * (state / Q); 
-
-	//cout << t << "=t" << endl;
 
 	if (t > 0) 
 		state = t; 
@@ -329,5 +327,71 @@ void Client::receiveOkay(TCPSocket* sock) {
 	 *	BEGIN FTP
 	 *	
 	 */
+	 
+void Client::startFTP(){
+	cout << "Starting FTP..." << endl;
+	initUDPSocket();
+	cout << "Initialized UDP socket" << endl;
+	beginSend();
+}
+
+	 
+void Client::initUDPSocket(){
+	udpSock = new EncryptedUDPSocket(clientHostname, clientPort);
+	udpSock->bf->Set_Passwd(sessionKey);
+	theIfstream.open(fileToSend.c_str());
+	delete activeSocket;
+}
+
+void Client::beginSend(){
+	if (algorithm.compare(0,2,"sw")) {
+		cout << "Stop and Wait" << endl;
+		windowSize = 1;
+		runSR();
+	} else if (algorithm.compare(0,8,"goback-n")) {
+		cout << "Go Back-N" << endl;
+		runGoBackN();
+	} else if (algorithm.compare(0,2,"sr")){ 
+		cout << "Selective Repeat" << endl;
+		runSR();
+	} else {
+		cerr << "Unrecognized transfer algorithm specified in config.cfg.  Please use 'sw', 'goback-n', 'sr'." << endl;
+		cerr << "exiting..." << endl;
+		exit(1);
+	}
+}
+
+void Client::runSR(){
+	Packet p;
+	p.payload = new char[packetSize];
+	cout << "Initialized packet" << endl;
+	readNextPacketFromFile(&p);
+	if (p.id != -1) {
+		udpSock->sendPayloadTo(&p, sizeof(Packet), serverHostname, serverPort);
+		cout << "Sent packet " << currPacketId << "." << endl;
+	}
+	
+	cout << "Listening for ack." << endl;
+	Ack a;
+	udpSock->recvPayload((void*)&a, (int) sizeof(Ack));
+	cout << "Ack received" << endl;
+	cout << "Ack number was " << a << endl;
+}
+
+void Client::runGoBackN(){
+
+}
+
+void Client::readNextPacketFromFile(Packet* p){
+	if (!theIfstream.eof()){
+		currPacketId++;
+		theIfstream >> p->payload;
+		p->id = currPacketId;	
+		cout << "Packet " << currPacketId << " created." << endl;
+	} else {
+		p->id = -1;
+		theIfstream.close();
+	}
+}
 
 

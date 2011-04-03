@@ -32,7 +32,8 @@ int main(int argc, char** argv){
 	} else if (*argv[1] == 'c') {
 		cout << "making a client" << endl;
 		c = new Client(f->kdcHostname, f->kdcPort, f->clientHostname, f->clientPort, 
-						f->serverHostname, f->serverPort, f->clientNonce, f->clientKeys[0]);
+						f->serverHostname, f->serverPort, f->clientNonce, f->clientKeys[0], 
+						f->fileToSend, f->packetSize);
 		c->initiate();
 	}
 	

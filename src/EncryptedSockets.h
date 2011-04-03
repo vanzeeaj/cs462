@@ -2,6 +2,7 @@
 #define ENCRYPTED_SOCKETS_H
 #include <string>
 #include <map>
+#include <string>
 #include "PracticalSocket.h"
 #include "blowfish.h"
 #include "common.h"
@@ -90,6 +91,8 @@ class EncryptedUDPSocket : public EncryptedSocket {
 		
 		// Instance Variables
 		UDPSocket* sock;
+		void sendPayloadTo(void* buffer, int bufferLen, string foreignAddress, int foreignPort);
+		int recvPayload(void *buffer,int bufferLen);
 		
 };
 

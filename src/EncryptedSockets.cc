@@ -81,6 +81,14 @@ EncryptedUDPSocket::EncryptedUDPSocket(string localAddress, int port) : Encrypte
 	// delete sock;
 // }
 
+void EncryptedUDPSocket::sendPayloadTo(void* buffer, int bufferLen, string foreignAddress, int foreignPort){
+	sock->sendTo(buffer, bufferLen, foreignAddress, foreignPort);
+}
+
+int EncryptedUDPSocket::recvPayload(void *buffer, int bufferLen){
+	return sock->recv(buffer, bufferLen);
+}
+
 
 
 /* ENCRYPTED TCP SOCKET STUFF */
