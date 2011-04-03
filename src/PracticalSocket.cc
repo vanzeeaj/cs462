@@ -199,7 +199,6 @@ void CommunicatingSocket::connect(const string &foreignAddress,
 
 void CommunicatingSocket::send(const void *buffer, int bufferLen) 
     throw(SocketException) {
-	cout << "inside send" << endl;
   if (::send(sockDesc, (raw_type *) buffer, bufferLen, 0) < 0) {
     throw SocketException("Send failed (send())", true);
   }
@@ -294,13 +293,17 @@ UDPSocket::UDPSocket() throw(SocketException) : CommunicatingSocket(SOCK_DGRAM,
 UDPSocket::UDPSocket(unsigned short localPort)  throw(SocketException) : 
     CommunicatingSocket(SOCK_DGRAM, IPPROTO_UDP) {
   setLocalPort(localPort);
-  setBroadcast();
-}
+
+
+	setBroadcast();
+
+	}
 
 UDPSocket::UDPSocket(const string &localAddress, unsigned short localPort) 
-     throw(SocketException) : CommunicatingSocket(SOCK_DGRAM, IPPROTO_UDP) {
+     throw(SocketException) : CommunicatingSocket(SOCK_DGRAM, IPPROTO_UDP) {	
   setLocalAddressAndPort(localAddress, localPort);
   setBroadcast();
+
 }
 //UDPSocket::~UDPSocket(){}
 

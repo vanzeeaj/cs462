@@ -44,6 +44,7 @@ clean:
 fullclean:
 	rm -f *~
 	rm -f *.o
+	rm -f core
 	rm -f ../linux/*.o
 	rm -f ../shiva/*.o
 	rm -f ../shiva/sunftp
@@ -53,5 +54,5 @@ fullclean:
 #Always include the dependency file unless we run the clean command
 #which will make it even if it does not exist
 ifneq ($(MAKECMDGOALS), clean)
-include $(BUILDDIR)$(EXEC).d
+include $(EXEC).d
 endif

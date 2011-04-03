@@ -5,10 +5,11 @@
 #include <queue>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <sys/wait.h>
 #include <signal.h>
 #include <vector>
+#include <fstream>
 #include "EncryptedSockets.h"
 #include "common.h"
 
@@ -17,9 +18,9 @@ class Client {
 	public:
 		// constructors, deconstructors
 		Client();
-		Client(char* kdcHostname, int kdcPort, char* clientHostname, 
-			int clientPort, char* serverHostname, int serverPort, 
-			uint64_t nonce, char* keyA);
+		Client(string kdcHostname, int kdcPort, string clientHostname, 
+			int clientPort, string serverHostname, int serverPort, 
+			uint64_t nonce, char* keyA, string fileToSend, int packetSize);
 		~Client();
 		void initiate();
 		
@@ -27,7 +28,6 @@ class Client {
 		uint64_t nonce;					// our nonce (used in authenticating)
 		char* key;						// our private key (used for authenticating)
 		char* sessionKey;				// our session key (used for encrypting/decrypting lists)
-		char* request;
 		char* cipherToSendToServer1;
 		char* cipherToSendToServer2;
 		uint64_t nonce2ReceivedFromServer;
@@ -54,8 +54,21 @@ class Client {
 		void sendMutatedNonce2(TCPSocket*);
 		void receiveOkay(TCPSocket*);
 		
+		// FTP Variables and functions.
 		EncryptedUDPSocket* udpSock;
+		string fileToSend;
+		ifstream theIfstream;
+		int packetSize;
+		long currPacketId;
+		string algorithm;
+		long windowSize;
 		
+		void startFTP();
+		void initUDPSocket();
+		void beginSend();
+		void runGoBackN();
+		void runSR();
+		void readNextPacketFromFile(Packet* p);
 	
 	private:
 		// Helper functions

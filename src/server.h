@@ -2,6 +2,7 @@
 #define SERVER_H
 
 #include <iostream>
+#include <fstream>
 #include "common.h"
 #include "EncryptedSockets.h"
 
@@ -12,8 +13,7 @@ class Server {
 	public:
 		// constructors and deconstructors
 		Server();
-		Server(int, char*, char*, uint64_t);
-		//serverPort,  keyB, serverHostname, nonce 
+		Server(int serverPort, string serverHostname, char* keyB, uint64_t nonce);
 		~Server();
 
 
@@ -44,8 +44,22 @@ class Server {
 		char* sessionKey;
 		uint64_t nonce;
 		
+		// FTP Variables and functions
+		EncryptedUDPSocket* udpSock;
+		string fileToSend;
+		ifstream theIfstream;
+		int packetSize;
+		long currPacketId;
+		long windowSize;
+		
+		void startFTP();
+		void initUDPSocket();
+		void beginRecv();
+		void closeUDPSocketAndKillThread();
+		
 		
 	private:
+		// helper functions
 		
 };
 

@@ -6,25 +6,26 @@ Client::Client(){
 	this->udpSock = new EncryptedUDPSocket();
 }
 
-Client::Client(char* kdcHostname, int kdcPort, char* clientHostname, 
-			int clientPort, char* serverHostname, int serverPort, 
-			uint64_t nonce, char* keyA) {
+Client::Client(string kdcHostname, int kdcPort, string clientHostname, 
+			int clientPort, string serverHostname, int serverPort, 
+			uint64_t nonce, char* keyA, string fileToSend, int packetSize) {
 	this->kdcHostname = kdcHostname;
 	this->kdcPort = kdcPort;
 	this->clientPort = clientPort;
 	this->nonce = nonce;
 	this->key = keyA;
 	this->sessionKey = new char[maxKeyLen]();
-	this->udpSock = new EncryptedUDPSocket();
 	this->clientHostname = clientHostname;
 	this->serverHostname = serverHostname;
 	this->serverPort = serverPort;
-	this->idb = udpSock->hostMap[clientHostname];
+	this->idb = clientHostname;
 	idb.append(":");
 	char* temp = new char[sizeof(int) * 8 + 1];
 	snprintf(temp, sizeof(temp), "%d", clientPort);
 	idb.append(temp);
 	delete(temp);
+	this->fileToSend = fileToSend;
+	this->currPacketId = -1;
 }
 
 void Client::initiate(){
@@ -32,7 +33,7 @@ void Client::initiate(){
 	getAuthenticationInfoFromKDC();
 	// Auth with Server
 	authenticateWithServer();
-
+	startFTP();
 }
 
 uint64_t Client::hashF(uint64_t nonce) {
@@ -43,8 +44,6 @@ uint64_t Client::hashF(uint64_t nonce) {
 
 	static long state = 1; 
 	long t = A * (state % Q) - R * (state / Q); 
-
-	//cout << t << "=t" << endl;
 
 	if (t > 0) 
 		state = t; 
@@ -72,8 +71,11 @@ void Client::getAuthenticationInfoFromKDC() {
 TCPSocket* Client::getConnectionWithKDC() {
 	try {
 		// Establish connection with the echo server
-		string servAddress = udpSock->hostMap[kdcHostname];
-		TCPSocket* clientSocket = new TCPSocket(servAddress, kdcPort);
+		// cout << kdcHostname.size() << endl;
+		// cout << kdcHostname.c_str() << "." << endl;
+		// string servAddress = udpSock->hostMap[kdcHostname.c_str()];
+		// cout << servAddress << endl;
+		TCPSocket* clientSocket = new TCPSocket(kdcHostname, kdcPort);
 		return clientSocket;
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
@@ -138,8 +140,9 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 				sock->recv(&recvNonce, s);
 			} else {
 				sock->recv(&s, 4);
-				recvBuff[i] = new char [s];		// create the buffer with that size
+				recvBuff[i] = new char [s+1];		// create the buffer with that size
 				sock->recv(recvBuff[i],s);		// receive the buffer
+				recvBuff[i][s] = '\0';
 				cout << "received:" << recvBuff[i] << ", size:" << s << ",iteration " << i << endl;
 			}
 			i++;
@@ -153,7 +156,8 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 		cout << "  Eka[Ks] = '" << recvBuff[0] << "'" << endl;
 		// TODO DECRYPT RECVBUFF[0-4] WITH Ka
 		sessionKey = recvBuff[0];
-		if (strcmp(recvBuff[1], request)) {
+		string cs = recvBuff[1];
+		if (cs.find(idb) == -1) {
 			cerr << "Did not receive our request back.  Terminating" << endl;
 			exit(1);
 		}
@@ -197,9 +201,8 @@ void Client::authenticateWithServer() {
 
 TCPSocket* Client::getConnectionWithServer() {
 	try {
-		// TODO
-		string servAddress = udpSock->hostMap[serverHostname];
-		TCPSocket* ServerSocket = new TCPSocket(servAddress, serverPort);
+		//string servAddress = udpSock->hostMap[serverHostname];
+		TCPSocket* ServerSocket = new TCPSocket(serverHostname, serverPort);
 		return ServerSocket;
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
@@ -262,7 +265,7 @@ void Client::receiveNonce2(TCPSocket* sock) {
 		cout << "Received from B: (Step 4)" << endl;
 		cout << "  Eks[N2] = '" << recvNonce << "'" << endl;
 		nonce2ReceivedFromServer = recvNonce;
-		// change this after decryption done:
+		// TODO Decrypt Ks Nonce2
 		cout << "  N2(decrypted) = '" << recvNonce << "'" << endl;
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
@@ -278,9 +281,7 @@ void Client::sendMutatedNonce2(TCPSocket* sock) {
 	//cout << "Sending cyphers to peer" << endl;
 
 	// Our 2 buffers we want to send and their lengths
-	cout << "Sent to B: (Step 5)" << endl;
-	cout << "  encryptedAndMutatedNonceToSend='" << encryptedAndMutatedNonceToSend << "'" << endl;
-	
+	cout << "Sent to B: (Step 5)" << endl;	
 	// TODO: Encrypt this with Eks
 	cout << "  mutatedNonce(encrypted)='" << encryptedAndMutatedNonceToSend << "'" << endl;
 	unsigned int firstTransLen = 8;
@@ -326,5 +327,71 @@ void Client::receiveOkay(TCPSocket* sock) {
 	 *	BEGIN FTP
 	 *	
 	 */
+	 
+void Client::startFTP(){
+	cout << "Starting FTP..." << endl;
+	initUDPSocket();
+	cout << "Initialized UDP socket" << endl;
+	beginSend();
+}
+
+	 
+void Client::initUDPSocket(){
+	udpSock = new EncryptedUDPSocket(clientHostname, clientPort);
+	udpSock->bf->Set_Passwd(sessionKey);
+	theIfstream.open(fileToSend.c_str());
+	delete activeSocket;
+}
+
+void Client::beginSend(){
+	if (algorithm.compare(0,2,"sw")) {
+		cout << "Stop and Wait" << endl;
+		windowSize = 1;
+		runSR();
+	} else if (algorithm.compare(0,8,"goback-n")) {
+		cout << "Go Back-N" << endl;
+		runGoBackN();
+	} else if (algorithm.compare(0,2,"sr")){ 
+		cout << "Selective Repeat" << endl;
+		runSR();
+	} else {
+		cerr << "Unrecognized transfer algorithm specified in config.cfg.  Please use 'sw', 'goback-n', 'sr'." << endl;
+		cerr << "exiting..." << endl;
+		exit(1);
+	}
+}
+
+void Client::runSR(){
+	Packet p;
+	p.payload = new char[packetSize];
+	cout << "Initialized packet" << endl;
+	readNextPacketFromFile(&p);
+	if (p.id != -1) {
+		udpSock->sendPayloadTo(&p, sizeof(Packet), serverHostname, serverPort);
+		cout << "Sent packet " << currPacketId << "." << endl;
+	}
+	
+	cout << "Listening for ack." << endl;
+	Ack a;
+	udpSock->recvPayload((void*)&a, (int) sizeof(Ack));
+	cout << "Ack received" << endl;
+	cout << "Ack number was " << a << endl;
+}
+
+void Client::runGoBackN(){
+
+}
+
+void Client::readNextPacketFromFile(Packet* p){
+	if (!theIfstream.eof()){
+		currPacketId++;
+		theIfstream >> p->payload;
+		p->id = currPacketId;	
+		cout << "Packet " << currPacketId << " created." << endl;
+	} else {
+		p->id = -1;
+		theIfstream.close();
+	}
+}
 
 

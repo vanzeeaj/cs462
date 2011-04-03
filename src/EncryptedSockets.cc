@@ -3,9 +3,33 @@
 
 /* ENCRYPTED SOCKET STUFF */
 EncryptedSocket::EncryptedSocket() {
-	hostMap["andy"] = "137.28.8.161";
-	hostMap["clark"] = "137.28.8.160";
-	hostMap["shiva"] = "137.28.8.143";
+	// char* clark = new char [6];
+	// clark[0] = 'c';
+	// clark[1] = 'l';
+	// clark[2] = 'a';
+	// clark[3] = 'r';
+	// clark[4] = 'k';
+	// clark[5] = '\0';
+	// char* andy = new char [5];
+	// andy[0] = 'a';
+	// andy[1] = 'n';
+	// andy[2] = 'd';
+	// andy[3] = 'y';
+	// andy[4] = '\0';
+	// char* shiva = new char [6];
+	// shiva[0] = 's';
+	// shiva[1] = 'h';
+	// shiva[2] = 'i';
+	// shiva[3] = 'v';
+	// shiva[4] = 'a';
+	// shiva[5] = '\0';
+	
+	// hostMap[andy] = "137.28.8.161";
+	// hostMap[clark] = "137.28.8.160";
+	// hostMap[shiva] = "137.28.8.143";
+	// hostMap["andy\0"] = "137.28.8.161";
+	// hostMap["clark\0"] = "137.28.8.160";
+	// hostMap["shiva\0"] = "137.28.8.143";
 	this->bf = new Blowfish();
 }
 EncryptedSocket::~EncryptedSocket(){
@@ -50,7 +74,19 @@ EncryptedUDPSocket::EncryptedUDPSocket(string localAddress, int port) : Encrypte
 }
 
  EncryptedUDPSocket::EncryptedUDPSocket() : EncryptedSocket(){
-	sock = new UDPSocket("clark",34512);	 
+	sock = new UDPSocket(34522);	 
+}
+
+// EncryptedUDPSocket::~EncryptedUDPSocket() {
+	// delete sock;
+// }
+
+void EncryptedUDPSocket::sendPayloadTo(void* buffer, int bufferLen, string foreignAddress, int foreignPort){
+	sock->sendTo(buffer, bufferLen, foreignAddress, foreignPort);
+}
+
+int EncryptedUDPSocket::recvPayload(void *buffer, int bufferLen){
+	return sock->recv(buffer, bufferLen);
 }
 
 
@@ -64,6 +100,10 @@ EncryptedTCPSocket::EncryptedTCPSocket(string name, int port) : EncryptedSocket(
 EncryptedTCPSocket::EncryptedTCPSocket(TCPSocket* t) : EncryptedSocket() {
 	sock = t;
 }
+
+// EncryptedTCPSocket::~EncryptedTCPSocket() {
+	// delete sock;
+// }
 
 void EncryptedTCPSocket::sendPayload(void* buffer, int bufferLen) {
 	cout << "inside send payload" << endl;
@@ -98,10 +138,12 @@ int EncryptedTCPSocket::recvPayload(void* buffer, int bufferLen) {
 EncryptedTCPServerSocket::EncryptedTCPServerSocket(string name, int port):EncryptedSocket() {
 	sock = new TCPServerSocket(name, port, 5);
 }
-	
 
+// EncryptedTCPServerSocket::~EncryptedTCPServerSocket(){
+	// delete sock;
+// }
+	
 EncryptedTCPSocket* EncryptedTCPServerSocket::accept() {
 	TCPSocket* t = sock->accept();
 	return new EncryptedTCPSocket(t);
 } 
-
