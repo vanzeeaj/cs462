@@ -2,6 +2,7 @@
 #define SERVER_H
 
 #include <iostream>
+#include <fstream>
 #include "common.h"
 #include "EncryptedSockets.h"
 

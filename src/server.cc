@@ -141,10 +141,21 @@ void Server::sendOkay(TCPSocket* sock) {
 	sock->send(&k, 4);
 }
 
-void startFTP(){
+void Server::startFTP(){
 	initUDPSocket();
 	beginRecv();
 	closeUDPSocketAndKillThread();
 }
 
+void Server::initUDPSocket(){
+
+}
+
+void Server::beginRecv(){
+
+}
+
+void Server::closeUDPSocketAndKillThread(){
+
+}
 
