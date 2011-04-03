@@ -49,6 +49,9 @@ void Server::listenForCommunication() {
 		cout << "Finished giving authentication to client" << endl;
 	
 		activeSocket = clientSocket;
+		
+		cout << "Starting FTP" << endl;
+		startFTP();
 	
 	} catch (SocketException &e) {
 		cerr << e.what() << endl;
@@ -142,20 +145,23 @@ void Server::sendOkay(TCPSocket* sock) {
 }
 
 void Server::startFTP(){
+	cout << "Initializing UDPSocket" << endl;
 	initUDPSocket();
+	cout << "Starting receive" << endl;
 	beginRecv();
+	cout << "Finished Receiving... closing socket and killing thread." << endl;
 	closeUDPSocketAndKillThread();
 }
 
 void Server::initUDPSocket(){
-
+	
 }
 
 void Server::beginRecv(){
-
+	
 }
 
 void Server::closeUDPSocketAndKillThread(){
-
+	
 }
 
