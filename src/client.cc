@@ -6,26 +6,28 @@ Client::Client(){
 	this->udpSock = new EncryptedUDPSocket();
 }
 
-Client::Client(string kdcHostname, int kdcPort, string clientHostname, 
-			int clientPort, string serverHostname, int serverPort, 
-			uint64_t nonce, char* keyA, string fileToSend, int packetSize) {
-	this->kdcHostname = kdcHostname;
-	this->kdcPort = kdcPort;
-	this->clientPort = clientPort;
-	this->nonce = nonce;
-	this->key = keyA;
+//Client::Client(string kdcHostname, int kdcPort, string clientHostname, 
+//			int clientPort, string serverHostname, int serverPort, 
+//			uint64_t nonce, char* keyA, string fileToSend, int packetSize) {
+Client::Client(client_info* info, shared_info* sharedInfo){
+	this->kdcHostname = info->kdcIP;
+	this->kdcPort = info->kdcPort;
+	this->clientPort = info->clientPort;
+	this->nonce = info->nonce;
+	this->key = info->keyA;
 	this->sessionKey = new char[maxKeyLen]();
 	this->clientHostname = clientHostname;
-	this->serverHostname = serverHostname;
-	this->serverPort = serverPort;
-	this->idb = clientHostname;
+	this->serverHostname = info->serverIP;
+	this->serverPort = info->serverPort;
+	this->idb = info->clientIP;
 	idb.append(":");
 	char* temp = new char[sizeof(int) * 8 + 1];
 	snprintf(temp, sizeof(temp), "%d", clientPort);
 	idb.append(temp);
 	delete(temp);
-	this->fileToSend = fileToSend;
+	this->fileToSend = sharedInfo->fileToSend;
 	this->currPacketId = -1;
+	e = new Encrypter(key);
 }
 
 void Client::initiate(){
@@ -91,20 +93,32 @@ void Client::sendInfoToKDC(TCPSocket* sock) {
 
 	// Our 2 buffers we want to send and their lengths
 
-	unsigned int firstTransLen = idb.size();
-	unsigned int secondTransLen = 8; //8 because it's a uint_64
+	char* paddedIDB = new char[idb.size()];
+	strcpy(paddedIDB, idb.c_str());
+	uint64_t firstTransLen = (uint64_t)idb.size();
+	cout << "first Trans Len = " << firstTransLen << "idb = " << idb << endl;
+	int temp = firstTransLen;
+	paddedIDB = e->padBuffer(paddedIDB,  &temp);
+	firstTransLen = temp;
+	cout << "paddedIDB = " << paddedIDB << endl;
 
 	try {
+		//These two sends are UNENCRYPTED
 		// Send the length to the socket, and then the buffer, for both items
-		cout << "sending " << firstTransLen << " bytes:" << idb << endl;
 		
-		sock->send(&firstTransLen, 4);	
-		sock->send(idb.c_str(), firstTransLen);
-		cout << "sending " << secondTransLen << " bytes:" << nonce << endl;
+		cout << "sending " << firstTransLen << " bytes:" << paddedIDB << endl;		
 		
-		sock->send(&secondTransLen, 4);
+		e->printBytes(&firstTransLen, 8);
+		e->htonll(&firstTransLen);
+		e->printBytes(&firstTransLen, 8);
+		sock->send(&firstTransLen, 8);	
+		cout << " e->getEncryptedLength(idb.size() = " <<  e->getEncryptedLength(idb.size()) << endl;
+		sock->send(paddedIDB, temp);
 		
-		sock->send(&nonce, secondTransLen);
+		cout << "sending " << 8 << " bytes:" << nonce << endl;
+		e->htonll(&nonce);
+		sock->send(&nonce, 8);
+		e->htonll(&nonce);
 	
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
@@ -124,39 +138,75 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 	
 	// Prepare to receive the 5 items sent back from authentication with KDC
 	int i=0;
-	int transCount = 5;
+	int transCount = 3;
 	char** recvBuff = new char*[transCount];
+	char** decryptedBuff = new char*[transCount];
+	uint64_t** s = new uint64_t*[transCount];	
 	uint64_t recvNonce;
+	
+	//FOR DOUBLY ENCRYPTED RECEIVES
+	int doublyEncCount = 2;
+	uint64_t* encSize = new uint64_t[doublyEncCount];
+	uint64_t* unEncSize = new uint64_t[doublyEncCount];
+	char** doublyEncMessage = new char*[doublyEncCount];
+	
+	
 	
 	try {
 		// Loops until we receive 5 different buffers
-		while (i<transCount){
-			unsigned int s;					// size of the incoming buffer
-			if (i==2){
-				recvBuff[i] = new char [4];
-				cout << "waiting for nonce size\n";
-				flush(cout);
-				sock->recv(&s, 4);
-				sock->recv(&recvNonce, s);
-			} else {
-				sock->recv(&s, 4);
-				recvBuff[i] = new char [s+1];		// create the buffer with that size
-				sock->recv(recvBuff[i],s);		// receive the buffer
-				recvBuff[i][s] = '\0';
-				cout << "received:" << recvBuff[i] << ", size:" << s << ",iteration " << i << endl;
-			}
+		while (i<transCount){				// size of the incoming buffer
+				cout << "\n\nstarting new receive:" << endl;
+				s[i] = new uint64_t;
+				sock->recv(s[i], 8);
+				cout << "received enc size: ";
+				e->printBytes(s[i], 8);
+				s[i] = (uint64_t*) e->decrypt(s[i], 8);
+				e->htonll(s[i]);
+				cout << "decrypted Size = " << *s[i] << endl;
+				recvBuff[i] = new char [*s[i]];			// create the buffer with that size (used to be *s + 1)
+				//decryptedBuff[i] = new char[*s[i] + 1]; // create the buffer with size + 1 to add \0 to the end.
+				sock->recv(recvBuff[i],*s[i]);				// receive the buffer
+				cout << "received: ";
+				e->printBytes(recvBuff[i], *s[i]);
 			i++;
 		}
-		cout << "Received from KDC: (Step 2)" << endl;
-		cout << "  recvBuff[0] = '" << recvBuff[0] << "'" << endl;
-		cout << "  recvBuff[1] = '" << recvBuff[1] << "'" << endl;
-		cout << "  recvBuff[2] = '" << recvNonce << "'" << endl;
-		cout << "  recvBuff[3] = '" << recvBuff[3] << "'" << endl;
-		cout << "  recvBuff[4] = '" << recvBuff[4] << "'" << endl;
-		cout << "  Eka[Ks] = '" << recvBuff[0] << "'" << endl;
-		// TODO DECRYPT RECVBUFF[0-4] WITH Ka
-		sessionKey = recvBuff[0];
-		string cs = recvBuff[1];
+		
+		for (i = 0; i < doublyEncCount; i++){
+			//Receive size encrypted w/ A
+			sock->recv(&(unEncSize[i]), 8);
+			//Decrypt size encrypted w/ A so now it's unencrypted
+			unEncSize[i] = *(uint64_t*)e->decrypt(&(unEncSize[i]), 8);
+			e->htonll(&(unEncSize[i]));
+			cout << "SIZE IS........ " << (unEncSize[i]) << endl;
+			
+			//Receive size encrypted w/ B then A
+			sock->recv(&(encSize[i]), 8);
+			//Decrypt size encrypted w/ B then A so now it's only encrypted with B
+			encSize[i] = *(uint64_t*)e->decrypt(&(encSize[i]), 8);
+			
+			//Allocate memory for message
+			doublyEncMessage[i] = new char[unEncSize[i]];
+			//Receive message of size unencrypted first message
+			sock->recv(doublyEncMessage[i], unEncSize[i]);
+			//Decrypt this message
+			doublyEncMessage[i] = e->decrypt(doublyEncMessage[i], unEncSize[i]);
+		}
+		
+		for(int i = 0; i < transCount; i++){
+			decryptedBuff[i] = e->decrypt(recvBuff[i], *s[i]);
+		}
+		
+		cout << "After Decryption from KDC: (Step 2)" << endl;
+		cout << "  decryptedBuff[0] = '" << decryptedBuff[0] << "'" << endl;
+		cout << "  decryptedBuff[1] = '" << decryptedBuff[1] << "'" << endl;
+		cout << "  decryptedBuff[2] = '" << (*(uint64_t*)decryptedBuff[2]) << "'" << endl;
+		
+		
+		recvNonce = (*(uint64_t*)decryptedBuff[2]);
+		e->htonll(&recvNonce);
+		sessionKey = decryptedBuff[0];
+		string cs = decryptedBuff[1];	
+		
 		if (cs.find(idb) == -1) {
 			cerr << "Did not receive our request back.  Terminating" << endl;
 			exit(1);
@@ -165,8 +215,12 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 			cerr << "Did not receive our nonce back.  Terminating" << endl;
 			exit(1);	
 		}
-		cipherToSendToServer1 = recvBuff[3];
-		cipherToSendToServer2 = recvBuff[4];
+		cipher1Length = encSize[0];
+		cipher1LengthUnenc = unEncSize[0];
+		cipherToSendToServer1 = doublyEncMessage[0];
+		cipher2Length = encSize[1];
+		cipher2LengthUnenc = unEncSize[1];
+		cipherToSendToServer2 = doublyEncMessage[1];
 		
 		// change this after decryption done:
 		cout << "  Ks(decrypted) = '" << recvBuff[0] << "'" << endl;
@@ -174,6 +228,9 @@ void Client::getInfoFromKDC(TCPSocket* sock) {
 		cerr << e.what() << endl;
 		exit(1);
 	}
+	
+	e->changeKey(sessionKey);
+	
 	delete [] recvBuff;
 }
 
@@ -218,33 +275,31 @@ void Client::sendCyphers(TCPSocket* sock) {
 
 	// Our 2 buffers we want to send and their lengths
 	cout << "  cipherToSendToServer1='" << cipherToSendToServer1 << "'" << endl;
-	unsigned int firstTransLen = strlen(cipherToSendToServer1);
-	char* firstTrans = new char [firstTransLen];
-	memcpy(firstTrans, cipherToSendToServer1, firstTransLen);
+	//unsigned int firstTransLen = strlen(cipherToSendToServer1);
+	//char* firstTrans = new char [firstTransLen];
+	//memcpy(firstTrans, cipherToSendToServer1, firstTransLen);
 	cout << "  cipherToSendToServer2='" << cipherToSendToServer2 << "'" << endl;
-	unsigned int secondTransLen = strlen(cipherToSendToServer2);
-	char* secondTrans = new char [secondTransLen];
-	memcpy(secondTrans, cipherToSendToServer2, secondTransLen);
+	//unsigned int secondTransLen = strlen(cipherToSendToServer2);
+	//char* secondTrans = new char [secondTransLen];
+	//memcpy(secondTrans, cipherToSendToServer2, secondTransLen);
 
 
 	try {
 		// Send the length to the socket, and then the buffer, for both items
-		sock->send(&firstTransLen, 4);
-		sock->send(firstTrans, firstTransLen);
-		sock->send(&secondTransLen, 4);
-		sock->send(secondTrans, secondTransLen);
+		sock->send(&cipher1Length, 8);
+		sock->send(cipherToSendToServer1, cipher1LengthUnenc);
+		sock->send(&cipher2Length, 8);
+		sock->send(cipherToSendToServer2, cipher2LengthUnenc);
 	
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
 		exit(1);
 	}
 	cout << "Sent to B: (Step 3)" << endl;
-	cout << "  first cypher  = '" << firstTrans << "'" << endl;
-	cout << "  second cypher = '" << secondTrans << "'" << endl;
+	cout << "  first cypher  = '" << cipherToSendToServer1 << "'" << endl;
+	cout << "  second cypher = '" << cipherToSendToServer2 << "'" << endl;
 	cout << "  Ekb[Ks, Ida]" << endl;
 	//cout << "sent stuff" << endl;
-	delete (firstTrans);
-	delete (secondTrans);
 	
 }
 
@@ -259,13 +314,19 @@ void Client::receiveNonce2(TCPSocket* sock) {
 	
 	try {
 		uint64_t recvNonce;
-		uint32_t nonceSize;
-		sock->recv(&nonceSize,4);
+		uint64_t nonceSize;
+		sock->recv(&nonceSize,8);
+		nonceSize = *((uint64_t*)e->decrypt(&nonceSize, 8));
+		e->htonll(&nonceSize);
+		
 		sock->recv(&recvNonce,nonceSize);
 		cout << "Received from B: (Step 4)" << endl;
 		cout << "  Eks[N2] = '" << recvNonce << "'" << endl;
-		nonce2ReceivedFromServer = recvNonce;
 		// TODO Decrypt Ks Nonce2
+		cout << "Decrypted nonceSize should be 8: " << nonceSize << endl;
+		recvNonce = *((uint64_t*)e->decrypt(&recvNonce, nonceSize));
+		e->htonll(&recvNonce);
+		nonce2ReceivedFromServer = recvNonce;
 		cout << "  N2(decrypted) = '" << recvNonce << "'" << endl;
 	} catch(SocketException &e) {
 		cerr << e.what() << endl;
@@ -275,20 +336,28 @@ void Client::receiveNonce2(TCPSocket* sock) {
 }
 
 void Client::sendMutatedNonce2(TCPSocket* sock) {
-	
+	uint64_t firstTransLen = 8;
+	uint64_t encrFirstTransLen;
 	encryptedAndMutatedNonceToSend = hashF(nonce2ReceivedFromServer);
 		
 	//cout << "Sending cyphers to peer" << endl;
 
 	// Our 2 buffers we want to send and their lengths
 	cout << "Sent to B: (Step 5)" << endl;	
-	// TODO: Encrypt this with Eks
-	cout << "  mutatedNonce(encrypted)='" << encryptedAndMutatedNonceToSend << "'" << endl;
-	unsigned int firstTransLen = 8;
+	
 
 	try {
 		// Send the length to the socket, and then the buffer, for both items
-		sock->send(&firstTransLen, 4);
+		e->htonll(&firstTransLen);
+		encrFirstTransLen = *(uint64_t*)e->encrypt(&firstTransLen, 8);
+		sock->send(&encrFirstTransLen, 8);
+		e->htonll(&firstTransLen);
+		
+		
+		cout << "  mutatedNonce(unencrypted)='" << encryptedAndMutatedNonceToSend << "'" << endl;
+		e->htonll(&encryptedAndMutatedNonceToSend);
+		encryptedAndMutatedNonceToSend = *(uint64_t*)e->encrypt(&encryptedAndMutatedNonceToSend, firstTransLen);
+		cout << "  mutatedNonce(encrypted)='" << encryptedAndMutatedNonceToSend << "'" << endl;
 		sock->send(&encryptedAndMutatedNonceToSend, firstTransLen);
 	
 	} catch(SocketException &e) {
@@ -302,8 +371,12 @@ void Client::sendMutatedNonce2(TCPSocket* sock) {
 
 void Client::receiveOkay(TCPSocket* sock) {
 	try {
-		unsigned int s;					// Confirmation int sent by server (Should be 0)
-		sock->recv(&s, 4);
+		uint64_t s;					// Confirmation int sent by server (Should be 0)
+		sock->recv(&s, 8);
+		s = *(uint64_t*)e->decrypt(&s, 8); //ALLOCATES BYTE(S)!
+		e->htonll(&s);
+		
+		cout << "s (should be 0)  = " << s << endl;
 		
 		if (s) {
 			cout << "Denied \"okay\" message by B! (Step 6)" << endl;

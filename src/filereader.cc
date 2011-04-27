@@ -8,61 +8,90 @@ FileReader::FileReader(){
 	file.close();
 } 
 
+
+//TODO ADD CRC NUMBER for shared.
+
 void FileReader::readFile(){
 	if (file.is_open()) {
 		
+		//CLIENT INFORMATION
 		string output;
 		getline(file,output);
 		output = readLine();
-		clientPort = atoi(output.c_str());
+		clientInfo.clientPort = atoi(output.c_str());
 		output = readLine();
-		clientHostname = getIP(output);
+		clientInfo.clientIP = getIP(output);
 		output = readLine();
-		clientNonce = atoll(output.c_str());
+		clientInfo.nonce = atoll(output.c_str());
 	
+		cout << "here1" << endl;
+	
+		//KDC info
 		getline(file,output);
 		getline(file,output);
 		output = readLine();
 		parseKeys(output);		
+		clientInfo.keyA = new char[recvBuffSize];
+		strcpy(clientInfo.keyA, KDCInfo.clientServerKeys[0]);
+		serverInfo.keyB = new char[recvBuffSize];
+		strcpy(serverInfo.keyB, KDCInfo.clientServerKeys[1]);
 		output = readLine();
-		keys = new char [recvBuffSize];
-		strcpy(keys, output.c_str());
+		KDCInfo.sessionKey = new char [recvBuffSize];
+		strcpy(KDCInfo.sessionKey, output.c_str());
 		output = readLine();
-		kdcPort = atoi(output.c_str());
+		clientInfo.kdcPort = atoi(output.c_str());
+		KDCInfo.kdcPort = clientInfo.kdcPort;
 		output = readLine();
-		kdcHostname = getIP(output);	
+		clientInfo.kdcIP = getIP(output);	
 		
+		cout << "here2" << endl;
+
+		
+		//Server info
 		getline(file,output);
 		getline(file,output);
 		output = readLine();
-		serverPort = atoi(output.c_str());
+		clientInfo.serverPort = atoi(output.c_str());
+		serverInfo.serverPort = clientInfo.serverPort;
 		output = readLine();
-		serverHostname = getIP(output);
+		clientInfo.serverIP = getIP(output);
+		serverInfo.serverIP = new char[recvBuffSize];
+		strcpy(serverInfo.serverIP, clientInfo.serverIP);
 		output = readLine();
-		serverNonce = atoll(output.c_str());
+		serverInfo.nonce = atoll(output.c_str());
 		
+		
+		cout << "here3" << endl;
+
+		
+		//Misc info
 		getline(file,output);
 		getline(file,output);
 		output = readLine();
-		packetLossRate = atof(output.c_str());
+		clientInfo.packetLossRate = atof(output.c_str());
 		output = readLine();
-		ackLossRate = atof(output.c_str());
+		sharedInfo.ackLossRate = atof(output.c_str());
 		output = readLine();
-		corruptedPacketRate = atof(output.c_str());
+		clientInfo.corruptedPacketRate = atof(output.c_str());
 		output = readLine();
-		parseLongs(droppedPackets, &droppedPacketCount, output);
+		parseLongs(clientInfo.droppedPackets, &(clientInfo.droppedPacketCount), output);
 		output = readLine();
-		parseLongs(droppedAcks, &droppedAckCount, output);
+		parseLongs(sharedInfo.droppedAcks, &(sharedInfo.droppedAckCount), output);
 		output = readLine();
-		parseLongs(corruptedPackets, &corruptedPacketCount, output);
+		parseLongs(clientInfo.corruptedPackets, &(clientInfo.corruptedPacketCount), output);
 		output = readLine();
-		windowSize = atoll(output.c_str());
+		sharedInfo.windowSize = atoll(output.c_str());
 		output = readLine();
-		packetSize = atoll(output.c_str());
-		algorithm = readLine();
-		fileToSend = readLine();
+		sharedInfo.packetSize = atoll(output.c_str());
+		clientInfo.algorithm = new char[recvBuffSize];
+		strcpy(clientInfo.algorithm, readLine().c_str());
+		sharedInfo.fileToSend = new char[recvBuffSize];
+		strcpy(sharedInfo.fileToSend, readLine().c_str());
+		output = readLine();
+		sharedInfo.CRCcode = atoll(output.c_str());
 		
-		
+		cout << "here4" << endl;
+
 		
 	} else {
 		cerr << "Couldn't open 'config.cfg'... exiting" << endl;
@@ -80,21 +109,21 @@ string FileReader::readLine() {
 
 void FileReader::parseKeys(string line){
 	int commaLoc = 0;	
-	clientKeyCount = 0;
+	KDCInfo.clientCount = 0;
 	string tempLine = line;
 	while( tempLine.size() > 0){
 		commaLoc =  tempLine.find(',', 0);
 		if(commaLoc == -1) commaLoc = tempLine.size() - 1;
 		tempLine = tempLine.substr(commaLoc + 1,  tempLine.size() - commaLoc);
-		clientKeyCount++;
+		KDCInfo.clientCount++;
 	}
 	
-	clientKeys = new char*[clientKeyCount]; 
+	KDCInfo.clientServerKeys = new char*[KDCInfo.clientCount]; 
 	
-	for(int i = 0; i < clientKeyCount; i++){
+	for(int i = 0; i < KDCInfo.clientCount; i++){
 		commaLoc = line.find(',', 0);
-		clientKeys[i] =  new char[recvBuffSize];
-		strcpy(clientKeys[i], line.substr(0, commaLoc).c_str());
+		KDCInfo.clientServerKeys[i] =  new char[recvBuffSize];
+		strcpy(KDCInfo.clientServerKeys[i], line.substr(0, commaLoc).c_str());
 		line = line.substr(commaLoc + 1, line.size() - commaLoc);
 	}
 }
@@ -120,15 +149,18 @@ void FileReader::parseLongs(uint64_t* data, int* count, string line){
 	}
 }
 
-string FileReader::getIP(string hostname){
+char* FileReader::getIP(string hostname){
+	char* temp = new char[recvBuffSize];
+	
 	if (hostname.compare(0,5,"shiva") == 0) {
-		return "137.28.8.143";
+		temp = "137.28.8.143";
 	} else if (hostname.compare(0,5,"clark") == 0) {
-		return  "137.28.8.160";
+		temp =  "137.28.8.160";
 	} else if (hostname.compare(0,4,"andy") == 0) {
-		return "137.28.8.161";
+		temp = "137.28.8.161";
 	} else {
 		cout << "Hostname " << hostname << " could not be resolved... exiting." << endl;
 		exit(1);
 	}
+	return temp;
 }

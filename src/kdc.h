@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "EncryptedSockets.h"
+#include "Encrypter.h"
 
 void* proxy_function(void*);
 
@@ -20,11 +21,14 @@ class KDC {
 		int kdcPort;
 		int serverPort;
 		string serverHostname;
-		string ida;				
+		string ida;		
+
+		Encrypter* e;
 		
 		// Cosntructors/destructors
-		KDC(char* newSessionKey, int newClientCount, char** newClientKeys, 
-			int kdcPort);//, char* serverHostname, int serverPort);
+		//KDC(char* newSessionKey, int newClientCount, char** newClientKeys, 
+		//	int kdcPort);//, char* serverHostname, int serverPort);
+		KDC(KDC_info* info);
 		void execute();
 		
 		// Socket Stuff 

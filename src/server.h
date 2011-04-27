@@ -5,6 +5,7 @@
 #include <fstream>
 #include "common.h"
 #include "EncryptedSockets.h"
+#include "Encrypter.h"
 
 
 
@@ -14,6 +15,7 @@ class Server {
 		// constructors and deconstructors
 		Server();
 		Server(int serverPort, string serverHostname, char* keyB, uint64_t nonce);
+		Server(server_info* info);
 		~Server();
 
 
@@ -35,14 +37,16 @@ class Server {
 		void sendOkay(TCPSocket*);
 		uint64_t hashF(uint64_t);				// function given to us by dr. tan
 
-		int localId;					// our ID (host ip + host port)
+		int localId;							// our ID (host ip + host port)
 		int serverPort;					// the port we listen on
 		int clientPort;					// the port we send to
 		int connectedClientId;			// client's ID that we send our list to
 		string serverHostname;
 		char* keyB;
 		char* sessionKey;
+		char* clientID;
 		uint64_t nonce;
+		Encrypter* e;
 		
 		// FTP Variables and functions
 		EncryptedUDPSocket* udpSock;

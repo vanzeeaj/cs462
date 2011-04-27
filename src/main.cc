@@ -4,12 +4,24 @@
 #include "kdc.h"
 #include "client.h"
 #include "filereader.h"
+#include "Encrypter.h"
 
 using namespace std;
 
 void testmain(int, char**);
 
 int main(int argc, char** argv){
+
+	/*Encrypter* e = new Encrypter("1123134");
+	char* test = "hello world.";
+	cout << "testa = " << test << endl;
+	test = e->encrypt(test, 12);
+	cout << "testb = " << test << endl;
+	test = e->decrypt(test,12);
+	cout << "testc = " << test << endl;*/
+
+	
+
 
 	// testmain(argc, argv);
 	KDC* k;
@@ -21,24 +33,29 @@ int main(int argc, char** argv){
 	if (*argv[1] == 'k') {
 		cout << "making a kdc" << endl;
 		
-		k = new KDC(f->keys, f->clientKeyCount, f->clientKeys, f->kdcPort);
+		//k = new KDC(f->keys, f->clientKeyCount, f->clientKeys, f->kdcPort);
+		k = new KDC(&(f->KDCInfo));
 		k->execute();
 		
 	} else if (*argv[1] == 's') {
 		cout << "making a server" << endl;
-		s = new Server(f->serverPort, f->serverHostname, f->clientKeys[1], f->serverNonce); 
+		//s = new Server(f->serverPort, f->serverHostname, f->clientKeys[1], f->serverNonce); 
+		s = new Server(&(f->serverInfo)); 
 		s->listenForCommunication();
 		
 	} else if (*argv[1] == 'c') {
 		cout << "making a client" << endl;
-		c = new Client(f->kdcHostname, f->kdcPort, f->clientHostname, f->clientPort, 
-						f->serverHostname, f->serverPort, f->clientNonce, f->clientKeys[0], 
-						f->fileToSend, f->packetSize);
+		//c = new Client(f->kdcHostname, f->kdcPort, f->clientHostname, f->clientPort, 
+		//				f->serverHostname, f->serverPort, f->clientNonce, f->clientKeys[0], 
+		//				f->fileToSend, f->packetSize);		
+		c = new Client(&(f->clientInfo), &(f->sharedInfo));
 		c->initiate();
 	}
 	
 	return 0;
 }
+
+
 
 void testmain(int argc, char** argv){
 	if (argc == 2){
